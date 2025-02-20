@@ -102,15 +102,23 @@ exports.createBill = async (req, res) => {
             data: {
                 id,
                 billDate,
-                customer,
+                customer: {
+                    id: customer.id,
+                    name: customer.name,
+                    email: customer.email,
+                    phoneNumber: customer.phone_number,
+                    address: customer.address,
+                    createdAt: customer.created_at,
+                    updatedAt: customer.updated_at,
+                },
                 user: {
                     id: user.id,
                     name: user.name,
                     email: user.email,
                     username: user.username,
                     role: user.role,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt,
+                    createdAt: user.created_at,
+                    updatedAt: user.updated_at,
                 },
                 billDetails: enrichedBillDetails,
                 createdAt,
@@ -129,51 +137,48 @@ exports.createBill = async (req, res) => {
 // Get all bills
 exports.getAllBills = async (req, res) => {
     try {
-        const { date } = req.query;
-        const bills = date
-            ? await billModel.findReportIn(date)
-            : await billModel.findMany();
+        const bills = await billModel.findMany();
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customerId);
-                const user = await userModel.findById(bill.userId);
+                const customer = await customerModel.findById(bill.customer_id);
+                const user = await userModel.findById(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
                 });
 
                 const formattedDetails = details.map((detail) => ({
-                    id: detail.detailId,
+                    id: detail.detail_id,
                     billId: bill.id,
-                    invoiceId: detail.invoiceId,
+                    invoiceId: detail.invoice_id,
                     product: {
-                        id: detail.productId,
-                        name: detail.productName,
-                        price: detail.unitPrice,
+                        id: detail.product_id,
+                        name: detail.product_name,
+                        price: detail.unit_price,
                         type: detail.type,
-                        createdAt: detail.createdAt,
-                        updatedAt: detail.updatedAt,
+                        createdAt: detail.created_at,
+                        updatedAt: detail.updated_at,
                     },
                     qty: detail.qty,
                     price: detail.price,
-                    paymentStatus: detail.paymentStatus,
+                    paymentStatus: detail.payment_status,
                     status: detail.status,
-                    finishDate: detail.finishDate,
-                    createdAt: detail.createdAt,
-                    updatedAt: detail.updatedAt,
+                    finishDate: detail.finish_date,
+                    createdAt: detail.created_at,
+                    updatedAt: detail.updated_at,
                 }));
 
                 return {
                     id: bill.id,
-                    billDate: bill.billDate,
+                    billDate: bill.bill_date,
                     customer: {
                         id: customer.id,
                         name: customer.name,
-                        phoneNumber: customer.phoneNumber,
+                        phoneNumber: customer.phone_number,
                         address: customer.address,
-                        createdAt: customer.createdAt,
-                        updatedAt: customer.updatedAt,
+                        createdAt: customer.created_at,
+                        updatedAt: customer.updated_at,
                     },
                     user: {
                         id: user.id,
@@ -181,12 +186,12 @@ exports.getAllBills = async (req, res) => {
                         email: user.email,
                         username: user.username,
                         role: user.role,
-                        createdAt: user.createdAt,
-                        updatedAt: user.updatedAt,
+                        createdAt: user.created_at,
+                        updatedAt: user.updated_at,
                     },
                     billDetails: formattedDetails,
-                    createdAt: bill.createdAt,
-                    updatedAt: bill.updatedAt,
+                    createdAt: bill.created_at,
+                    updatedAt: bill.updated_at,
                 };
             })
         );
@@ -211,44 +216,44 @@ exports.getReportInBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customerId);
-                const user = await userModel.findById(bill.userId);
+                const customer = await customerModel.findById(bill.customer_id);
+                const user = await userModel.findById(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
                 });
 
                 const formattedDetails = details.map((detail) => ({
-                    id: detail.detailId,
+                    id: detail.detail_id,
                     billId: bill.id,
-                    invoiceId: detail.invoiceId,
+                    invoiceId: detail.invoice_id,
                     product: {
-                        id: detail.productId,
-                        name: detail.productName,
-                        price: detail.unitPrice,
+                        id: detail.product_id,
+                        name: detail.product_name,
+                        price: detail.unit_price,
                         type: detail.type,
-                        createdAt: detail.createdAt,
-                        updatedAt: detail.updatedAt,
+                        createdAt: detail.created_at,
+                        updatedAt: detail.updated_at,
                     },
                     qty: detail.qty,
                     price: detail.price,
-                    paymentStatus: detail.paymentStatus,
+                    paymentStatus: detail.payment_status,
                     status: detail.status,
-                    finishDate: detail.finishDate,
-                    createdAt: detail.createdAt,
-                    updatedAt: detail.updatedAt,
+                    finishDate: detail.finish_date,
+                    createdAt: detail.created_at,
+                    updatedAt: detail.updated_at,
                 }));
 
                 return {
                     id: bill.id,
-                    billDate: bill.billDate,
+                    billDate: bill.bill_date,
                     customer: {
                         id: customer.id,
                         name: customer.name,
-                        phoneNumber: customer.phoneNumber,
+                        phoneNumber: customer.phone_number,
                         address: customer.address,
-                        createdAt: customer.createdAt,
-                        updatedAt: customer.updatedAt,
+                        createdAt: customer.created_at,
+                        updatedAt: customer.updated_at,
                     },
                     user: {
                         id: user.id,
@@ -256,12 +261,12 @@ exports.getReportInBills = async (req, res) => {
                         email: user.email,
                         username: user.username,
                         role: user.role,
-                        createdAt: user.createdAt,
-                        updatedAt: user.updatedAt,
+                        createdAt: user.created_at,
+                        updatedAt: user.updated_at,
                     },
                     billDetails: formattedDetails,
-                    createdAt: bill.createdAt,
-                    updatedAt: bill.updatedAt,
+                    createdAt: bill.created_at,
+                    updatedAt: bill.updated_at,
                 };
             })
         );
@@ -286,44 +291,44 @@ exports.getReportOutBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customerId);
-                const user = await userModel.findById(bill.userId);
+                const customer = await customerModel.findById(bill.customer_id);
+                const user = await userModel.findById(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
                 });
 
                 const formattedDetails = details.map((detail) => ({
-                    id: detail.detailId,
+                    id: detail.detail_id,
                     billId: bill.id,
-                    invoiceId: detail.invoiceId,
+                    invoiceId: detail.invoice_id,
                     product: {
-                        id: detail.productId,
-                        name: detail.productName,
-                        price: detail.unitPrice,
+                        id: detail.product_id,
+                        name: detail.product_name,
+                        price: detail.unit_price,
                         type: detail.type,
-                        createdAt: detail.createdAt,
-                        updatedAt: detail.updatedAt,
+                        createdAt: detail.created_at,
+                        updatedAt: detail.updated_at,
                     },
                     qty: detail.qty,
                     price: detail.price,
-                    paymentStatus: detail.paymentStatus,
+                    paymentStatus: detail.payment_status,
                     status: detail.status,
-                    finishDate: detail.finishDate,
-                    createdAt: detail.createdAt,
-                    updatedAt: detail.updatedAt,
+                    finishDate: detail.finish_date,
+                    createdAt: detail.created_at,
+                    updatedAt: detail.updated_at,
                 }));
 
                 return {
                     id: bill.id,
-                    billDate: bill.billDate,
+                    billDate: bill.bill_date,
                     customer: {
                         id: customer.id,
                         name: customer.name,
-                        phoneNumber: customer.phoneNumber,
+                        phoneNumber: customer.phone_number,
                         address: customer.address,
-                        createdAt: customer.createdAt,
-                        updatedAt: customer.updatedAt,
+                        createdAt: customer.created_at,
+                        updatedAt: customer.updated_at,
                     },
                     user: {
                         id: user.id,
@@ -331,12 +336,12 @@ exports.getReportOutBills = async (req, res) => {
                         email: user.email,
                         username: user.username,
                         role: user.role,
-                        createdAt: user.createdAt,
-                        updatedAt: user.updatedAt,
+                        createdAt: user.created_at,
+                        updatedAt: user.updated_at,
                     },
                     billDetails: formattedDetails,
-                    createdAt: bill.createdAt,
-                    updatedAt: bill.updatedAt,
+                    createdAt: bill.created_at,
+                    updatedAt: bill.updated_at,
                 };
             })
         );
@@ -361,44 +366,44 @@ exports.getReportNotPaidOffBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customerId);
-                const user = await userModel.findById(bill.userId);
+                const customer = await customerModel.findById(bill.customer_id);
+                const user = await userModel.findById(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
                 });
 
                 const formattedDetails = details.map((detail) => ({
-                    id: detail.detailId,
+                    id: detail.detail_id,
                     billId: bill.id,
-                    invoiceId: detail.invoiceId,
+                    invoiceId: detail.invoice_id,
                     product: {
-                        id: detail.productId,
-                        name: detail.productName,
-                        price: detail.unitPrice,
+                        id: detail.product_id,
+                        name: detail.product_name,
+                        price: detail.unit_price,
                         type: detail.type,
-                        createdAt: detail.createdAt,
-                        updatedAt: detail.updatedAt,
+                        createdAt: detail.created_at,
+                        updatedAt: detail.updated_at,
                     },
                     qty: detail.qty,
                     price: detail.price,
-                    paymentStatus: detail.paymentStatus,
+                    paymentStatus: detail.payment_status,
                     status: detail.status,
-                    finishDate: detail.finishDate,
-                    createdAt: detail.createdAt,
-                    updatedAt: detail.updatedAt,
+                    finishDate: detail.finish_date,
+                    createdAt: detail.created_at,
+                    updatedAt: detail.updated_at,
                 }));
 
                 return {
                     id: bill.id,
-                    billDate: bill.billDate,
+                    billDate: bill.bill_date,
                     customer: {
                         id: customer.id,
                         name: customer.name,
-                        phoneNumber: customer.phoneNumber,
+                        phoneNumber: customer.phone_number,
                         address: customer.address,
-                        createdAt: customer.createdAt,
-                        updatedAt: customer.updatedAt,
+                        createdAt: customer.created_at,
+                        updatedAt: customer.updated_at,
                     },
                     user: {
                         id: user.id,
@@ -406,12 +411,12 @@ exports.getReportNotPaidOffBills = async (req, res) => {
                         email: user.email,
                         username: user.username,
                         role: user.role,
-                        createdAt: user.createdAt,
-                        updatedAt: user.updatedAt,
+                        createdAt: user.created_at,
+                        updatedAt: user.updated_at,
                     },
                     billDetails: formattedDetails,
-                    createdAt: bill.createdAt,
-                    updatedAt: bill.updatedAt,
+                    createdAt: bill.created_at,
+                    updatedAt: bill.updated_at,
                 };
             })
         );
@@ -436,44 +441,44 @@ exports.getReportNotTakenYetBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customerId);
-                const user = await userModel.findById(bill.userId);
+                const customer = await customerModel.findById(bill.customer_id);
+                const user = await userModel.findById(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
                 });
 
                 const formattedDetails = details.map((detail) => ({
-                    id: detail.detailId,
+                    id: detail.detail_id,
                     billId: bill.id,
-                    invoiceId: detail.invoiceId,
+                    invoiceId: detail.invoice_id,
                     product: {
-                        id: detail.productId,
-                        name: detail.productName,
-                        price: detail.unitPrice,
+                        id: detail.product_id,
+                        name: detail.product_name,
+                        price: detail.unit_price,
                         type: detail.type,
-                        createdAt: detail.createdAt,
-                        updatedAt: detail.updatedAt,
+                        createdAt: detail.created_at,
+                        updatedAt: detail.updated_at,
                     },
                     qty: detail.qty,
                     price: detail.price,
-                    paymentStatus: detail.paymentStatus,
+                    paymentStatus: detail.payment_status,
                     status: detail.status,
-                    finishDate: detail.finishDate,
-                    createdAt: detail.createdAt,
-                    updatedAt: detail.updatedAt,
+                    finishDate: detail.finish_date,
+                    createdAt: detail.created_at,
+                    updatedAt: detail.updated_at,
                 }));
 
                 return {
                     id: bill.id,
-                    billDate: bill.billDate,
+                    billDate: bill.bill_date,
                     customer: {
                         id: customer.id,
                         name: customer.name,
-                        phoneNumber: customer.phoneNumber,
+                        phoneNumber: customer.phone_number,
                         address: customer.address,
-                        createdAt: customer.createdAt,
-                        updatedAt: customer.updatedAt,
+                        createdAt: customer.created_at,
+                        updatedAt: customer.updated_at,
                     },
                     user: {
                         id: user.id,
@@ -481,12 +486,12 @@ exports.getReportNotTakenYetBills = async (req, res) => {
                         email: user.email,
                         username: user.username,
                         role: user.role,
-                        createdAt: user.createdAt,
-                        updatedAt: user.updatedAt,
+                        createdAt: user.created_at,
+                        updatedAt: user.updated_at,
                     },
                     billDetails: formattedDetails,
-                    createdAt: bill.createdAt,
-                    updatedAt: bill.updatedAt,
+                    createdAt: bill.created_at,
+                    updatedAt: bill.updated_at,
                 };
             })
         );
@@ -517,46 +522,46 @@ exports.getBillById = async (req, res) => {
             });
         }
 
-        const customer = await customerModel.findById(bill.customerId);
-        const user = await userModel.findById(bill.userId);
+        const customer = await customerModel.findById(bill.customer_id);
+        const user = await userModel.findById(bill.user_id);
 
         const details = await billDetailsModel.find({
             billId: id,
         });
 
         const formattedDetails = details.map((detail) => ({
-            id: detail.detailId,
+            id: detail.detail_id,
             billId: bill.id,
-            invoiceId: detail.invoiceId,
+            invoiceId: detail.invoice_id,
             product: {
-                id: detail.productId,
-                name: detail.productName,
-                price: detail.unitPrice,
+                id: detail.product_id,
+                name: detail.product_name,
+                price: detail.unit_price,
                 type: detail.type,
-                createdAt: detail.createdAt,
-                updatedAt: detail.updatedAt,
+                createdAt: detail.created_at,
+                updatedAt: detail.updated_at,
             },
             qty: detail.qty,
             price: detail.price,
-            paymentStatus: detail.paymentStatus,
+            paymentStatus: detail.payment_status,
             status: detail.status,
-            finishDate: detail.finishDate,
-            createdAt: detail.createdAt,
-            updatedAt: detail.updatedAt,
+            finishDate: detail.finish_date,
+            createdAt: detail.created_at,
+            updatedAt: detail.updated_at,
         }));
 
         res.status(200).json({
             status: { code: 200, description: "Ok" },
             data: {
                 id: bill.id,
-                billDate: bill.billDate,
+                billDate: bill.bill_date,
                 customer: {
                     id: customer.id,
                     name: customer.name,
-                    phoneNumber: customer.phoneNumber,
+                    phoneNumber: customer.phone_number,
                     address: customer.address,
-                    createdAt: customer.createdAt,
-                    updatedAt: customer.updatedAt,
+                    createdAt: customer.created_at,
+                    updatedAt: customer.updated_at,
                 },
                 user: {
                     id: user.id,
@@ -564,12 +569,12 @@ exports.getBillById = async (req, res) => {
                     email: user.email,
                     username: user.username,
                     role: user.role,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt,
+                    createdAt: user.created_at,
+                    updatedAt: user.updated_at,
                 },
                 billDetails: formattedDetails,
-                createdAt: bill.createdAt,
-                updatedAt: bill.updatedAt,
+                createdAt: bill.created_at,
+                updatedAt: bill.updated_at,
             },
         });
     } catch (error) {

@@ -12,10 +12,12 @@ const authenticate = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const [user] = await pool.query("SELECT * FROM users WHERE id = ?", [
+        const result = await pool.query("SELECT * FROM users WHERE id = $1", [
             decoded.userId,
         ]);
-        if (!user.length) throw new Error("User not found");
+
+        const user = result.rows;
+        if (!user) throw new Error("User not found");
 
         req.user = user[0];
         next();

@@ -34,9 +34,21 @@ exports.createProduct = async (req, res) => {
 exports.getAllProducts = async (req, res) => {
     try {
         const products = await productModel.findMany();
+
+        const formattedProducts = products.map(
+            ({ id, name, price, type, created_at, updated_at }) => ({
+                id,
+                name,
+                price,
+                type,
+                createdAt: created_at,
+                updatedAt: updated_at,
+            })
+        );
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: products,
+            data: formattedProducts,
         });
     } catch (error) {
         res.status(500).json({
@@ -59,9 +71,18 @@ exports.getProductById = async (req, res) => {
             });
         }
 
+        const formattedProduct = {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            type: product.type,
+            createdAt: product.created_at,
+            updatedAt: product.updated_at,
+        };
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: product,
+            data: formattedProduct,
         });
     } catch (error) {
         res.status(500).json({
@@ -93,10 +114,21 @@ exports.updateProduct = async (req, res) => {
             type,
             updatedAt,
         });
+
         const updatedProduct = await productModel.findById(id);
+
+        const formattedProduct = {
+            id: updatedProduct.id,
+            name: updatedProduct.name,
+            price: updatedProduct.price,
+            type: updatedProduct.type,
+            createdAt: updatedProduct.created_at,
+            updatedAt: updatedProduct.updated_at,
+        };
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: updatedProduct,
+            data: formattedProduct,
         });
     } catch (error) {
         res.status(500).json({

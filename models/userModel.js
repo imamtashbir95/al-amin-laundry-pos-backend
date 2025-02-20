@@ -14,8 +14,8 @@ const userModel = {
         } = data;
         await pool.query(
             `
-            INSERT INTO users (id, name, email, username, password, role, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (id, name, email, username, password, role, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             `,
             [
                 id,
@@ -31,38 +31,38 @@ const userModel = {
     },
 
     findMany: async () => {
-        const [users] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, email, username, password, role, createdAt, updatedAt
+            SELECT id, name, email, username, password, role, created_at, updated_at
             FROM users
-            WHERE isDeleted = 0
-            ORDER BY createdAt`
+            WHERE is_deleted = false
+            ORDER BY created_at`
         );
-        return users;
+        return result.rows;
     },
 
     findById: async (id) => {
-        const [user] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, email, username, password, role, createdAt, updatedAt
+            SELECT id, name, email, username, password, role, created_at, updated_at
             FROM users
-            WHERE isDeleted = 0 && id = ?
+            WHERE is_deleted = false AND id = $1
             `,
             [id]
         );
-        return user.length ? user[0] : null;
+        return result.rows[0] || null;
     },
 
     findByUsernameOrEmail: async (username, email) => {
-        const [user] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, email, username, password, role, createdAt, updatedAt
+            SELECT id, name, email, username, password, role, created_at, updated_at
             FROM users
-            WHERE username = ? || email = ?
+            WHERE username = $1 OR email = $2
             `,
             [username, email]
         );
-        return user.length ? user[0] : null;
+        return result.rows[0] || null;
     },
 
     update: async (data) => {
@@ -71,13 +71,13 @@ const userModel = {
         await pool.query(
             `
             UPDATE users
-            SET name = ?,
-                email = ?,
-                username = ?,
-                password = ?,
-                role = ?,
-                updatedAt = ?
-            WHERE isDeleted = 0 && id = ?
+            SET name = $1,
+                email = $2,
+                username = $3,
+                password = $4,
+                role = $5,
+                updated_at = $6
+            WHERE is_deleted = false AND id = $7
             `,
             [name, email, username, hashedPassword, role, updatedAt, id]
         );
@@ -89,23 +89,23 @@ const userModel = {
             UPDATE users
             SET email = CONCAT(email, '_deleted_', UNIX_TIMESTAMP()),
                 username = CONCAT(username, '_deleted_', UNIX_TIMESTAMP()),
-                isDeleted = 1
-            WHERE id = ?
+                is_deleted = true
+            WHERE id = $1
             `,
             [id]
         );
     },
 
     findManyExceptAdmin: async () => {
-        const [users] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, email, username, password, role, createdAt, updatedAt
+            SELECT id, name, email, username, password, role, created_at, updated_at
             FROM users
-            WHERE isDeleted = 0 && role != 'admin'
-            ORDER BY createdAt
+            WHERE is_deleted = false AND role != 'admin'
+            ORDER BY created_at
             `
         );
-        return users;
+        return result.rows;
     },
 };
 

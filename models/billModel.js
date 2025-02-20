@@ -5,130 +5,130 @@ const billModel = {
         const { id, billDate, customerId, userId, createdAt, updatedAt } = data;
         await pool.query(
             `
-            INSERT INTO bills (id, billDate, customerId, userId, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO bills (id, bill_date, customer_id, user_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             `,
             [id, billDate, customerId, userId, createdAt, updatedAt]
         );
     },
 
     findMany: async () => {
-        const [bills] = await pool.query(
+        const result = await pool.query(
             `
             SELECT
-                b.id, b.billDate, b.createdAt, b.updatedAt, 
-                c.id AS customerId, c.name AS customerName, c.phoneNumber, c.address,
-                b.userId
+                b.id, b.bill_date, b.created_at, b.updated_at, 
+                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
+                b.user_id
             FROM bills b
-            JOIN customers c ON b.customerId = c.id
-            WHERE b.isDeleted = 0
-            ORDER BY b.createdAt DESC
+            JOIN customers c ON b.customer_id = c.id
+            WHERE b.is_deleted = false
+            ORDER BY b.created_at DESC
             `
         );
-        return bills;
+        return result.rows;
     },
 
     findReportIn: async (date) => {
-        const [bills] = await pool.query(
+        const result = await pool.query(
             `
             SELECT
-                b.id, b.billDate, b.createdAt, b.updatedAt, 
-                c.id AS customerId, c.name AS customerName, c.phoneNumber, c.address,
-                b.userId
+                b.id, b.bill_date, b.created_at, b.updated_at, 
+                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
+                b.user_id
             FROM bills b
-            JOIN customers c ON b.customerId = c.id
+            JOIN customers c ON b.customer_id = c.id
             WHERE
-                b.isDeleted = 0
-                AND DATE(b.createdAt) = ?
-            ORDER BY b.createdAt DESC
+                b.is_deleted = false
+                AND DATE(b.created_at) = $1
+            ORDER BY b.created_at DESC
             `,
             [date]
         );
-        return bills;
+        return result.rows;
     },
 
     findReportOut: async (date) => {
-        const [bills] = await pool.query(
+        const result = await pool.query(
             `
             SELECT
-                b.id, b.billDate, b.createdAt, b.updatedAt, 
-                c.id AS customerId, c.name AS customerName, c.phoneNumber, c.address,
-                b.userId,
-                bd.finishDate, bd.paymentStatus, bd.status
+                b.id, b.bill_date, b.created_at, b.updated_at, 
+                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
+                b.user_id,
+                bd.finish_date, bd.payment_status, bd.status
             FROM bills b
-            JOIN customers c ON b.customerId = c.id
-            JOIN bill_details bd ON b.id = bd.billId
+            JOIN customers c ON b.customer_id = c.id
+            JOIN bill_details bd ON b.id = bd.bill_id
             WHERE
-                b.isDeleted = 0
-                AND DATE(bd.finishDate) = ?
-                AND bd.paymentStatus = "sudah-dibayar"
-                AND (bd.status = "selesai" OR bd.status = "diambil")
-            ORDER BY b.createdAt DESC
+                b.is_deleted = false
+                AND DATE(bd.finish_date) = $1
+                AND bd.payment_status = 'sudah-dibayar'
+                AND (bd.status = 'selesai' OR bd.status = 'diambil')
+            ORDER BY b.created_at DESC
             `,
             [date]
         );
-        return bills;
+        return result.rows;
     },
 
     findReportNotPaidOff: async (date) => {
-        const [bills] = await pool.query(
+        const result = await pool.query(
             `
             SELECT
-                b.id, b.billDate, b.createdAt, b.updatedAt, 
-                c.id AS customerId, c.name AS customerName, c.phoneNumber, c.address,
-                b.userId,
-                bd.finishDate, bd.paymentStatus, bd.status
+                b.id, b.bill_date, b.created_at, b.updated_at, 
+                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
+                b.user_id,
+                bd.finish_date, bd.payment_status, bd.status
             FROM bills b
-            JOIN customers c ON b.customerId = c.id
-            JOIN bill_details bd ON b.id = bd.billId
+            JOIN customers c ON b.customer_id = c.id
+            JOIN bill_details bd ON b.id = bd.bill_id
             WHERE
-                b.isDeleted = 0
-                AND DATE(bd.finishDate) <= ?
-                AND bd.paymentStatus = "belum-dibayar"
-            ORDER BY b.createdAt DESC
+                b.is_deleted = false
+                AND DATE(bd.finish_date) <= $1
+                AND bd.payment_status = 'belum-dibayar'
+            ORDER BY b.created_at DESC
             `,
             [date]
         );
-        return bills;
+        return result.rows;
     },
 
     findReportNotTakenYet: async (date) => {
-        const [bills] = await pool.query(
+        const result = await pool.query(
             `
             SELECT
-                b.id, b.billDate, b.createdAt, b.updatedAt, 
-                c.id AS customerId, c.name AS customerName, c.phoneNumber, c.address,
-                b.userId,
-                bd.finishDate, bd.paymentStatus, bd.status
+                b.id, b.bill_date, b.created_at, b.updated_at, 
+                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
+                b.user_id,
+                bd.finish_date, bd.payment_status, bd.status
             FROM bills b
-            JOIN customers c ON b.customerId = c.id
-            JOIN bill_details bd ON b.id = bd.billId
+            JOIN customers c ON b.customer_id = c.id
+            JOIN bill_details bd ON b.id = bd.bill_id
             WHERE
-                b.isDeleted = 0
-                AND DATE(bd.finishDate) <= ?
-                AND bd.paymentStatus = "sudah-dibayar"
-                AND bd.status = "selesai"
-            ORDER BY b.createdAt DESC
+                b.is_deleted = false
+                AND DATE(bd.finish_date) <= $1
+                AND bd.payment_status = 'sudah-dibayar'
+                AND bd.status = 'selesai'
+            ORDER BY b.created_at DESC
             `,
             [date]
         );
-        return bills;
+        return result.rows;
     },
 
     findById: async (id) => {
-        const [bill] = await pool.query(
+        const result = await pool.query(
             `
             SELECT  
-                b.id, b.billDate, b.createdAt, b.updatedAt,
-                c.id AS customerId, c.name AS customerName, c.phoneNumber, c.address,
-                b.userId
+                b.id, b.bill_date, b.created_at, b.updated_at,
+                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
+                b.user_id
             FROM bills b
-            JOIN customers c ON b.customerId = c.id
-            WHERE b.isDeleted = 0 && b.id = ?
+            JOIN customers c ON b.customer_id = c.id
+            WHERE b.is_deleted = false AND b.id = $1
             `,
             [id]
         );
-        return bill.length ? bill[0] : null;
+        return result.rows[0] || null;
     },
 
     update: async (data) => {
@@ -136,10 +136,10 @@ const billModel = {
         await pool.query(
             `
             UPDATE bills
-            SET customerId = ?,
-                userId = ?,
-                updatedAt = ?
-            WHERE isDeleted = 0 && id = ?
+            SET customer_id = $1,
+                user_id = $2,
+                updated_at = $3
+            WHERE is_deleted = false AND id = $4
             `,
             [customerId, userId, updatedAt, id]
         );
@@ -149,8 +149,8 @@ const billModel = {
         await pool.query(
             `
             UPDATE bills
-            SET isDeleted = 1
-            WHERE id = ?
+            SET is_deleted = true
+            WHERE id = $1
             `,
             [id]
         );

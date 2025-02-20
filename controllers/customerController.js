@@ -34,9 +34,21 @@ exports.createCustomer = async (req, res) => {
 exports.getAllCustomers = async (req, res) => {
     try {
         const customers = await customerModel.findMany();
+
+        const formattedCustomers = customers.map(
+            ({ id, name, phone_number, address, created_at, updated_at }) => ({
+                id,
+                name,
+                phoneNumber: phone_number,
+                address,
+                createdAt: created_at,
+                updatedAt: updated_at,
+            })
+        );
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: customers,
+            data: formattedCustomers,
         });
     } catch (error) {
         res.status(500).json({
@@ -59,9 +71,18 @@ exports.getCustomerById = async (req, res) => {
             });
         }
 
+        const formattedCustomer = {
+            id: customer.id,
+            name: customer.name,
+            phoneNumber: customer.phone_number, // Konversi snake_case ke camelCase
+            address: customer.address,
+            createdAt: customer.created_at,
+            updatedAt: customer.updated_at,
+        };
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: customer,
+            data: formattedCustomer,
         });
     } catch (error) {
         res.status(500).json({
@@ -93,10 +114,21 @@ exports.updateCustomer = async (req, res) => {
             address,
             updatedAt,
         });
+
         const updatedCustomer = await customerModel.findById(id);
+
+        const formattedCustomer = {
+            id: updatedCustomer.id,
+            name: updatedCustomer.name,
+            phoneNumber: updatedCustomer.phone_number, // Konversi snake_case ke camelCase
+            address: updatedCustomer.address,
+            createdAt: updatedCustomer.created_at,
+            updatedAt: updatedCustomer.updated_at,
+        };
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: updatedCustomer,
+            data: formattedCustomer,
         });
     } catch (error) {
         res.status(500).json({

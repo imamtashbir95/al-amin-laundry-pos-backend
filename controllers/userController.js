@@ -13,12 +13,12 @@ exports.registerUser = async (req, res) => {
     const updatedAt = createdAt;
 
     try {
-        const [existingUser] = await userModel.findByUsernameOrEmail(
+        const existingUser = await userModel.findByUsernameOrEmail(
             username,
             email
         );
 
-        if (!existingUser) {
+        if (existingUser) {
             return res.status(409).json({
                 status: { code: 409, description: "Conflict" },
                 error: "Username atau e-mail sudah ada",
@@ -59,9 +59,22 @@ exports.registerUser = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
     try {
         const users = await userModel.findMany();
+
+        const formattedUsers = users.map(
+            ({ id, name, email, username, role, created_at, updated_at }) => ({
+                id,
+                name,
+                email,
+                username,
+                role,
+                createdAt: created_at,
+                updatedAt: updated_at,
+            })
+        );
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: users,
+            data: formattedUsers,
         });
     } catch (error) {
         res.status(500).json({
@@ -84,9 +97,19 @@ exports.getUserById = async (req, res) => {
             });
         }
 
+        const formattedUser = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            role: user.role,
+            createdAt: user.created_at,
+            updatedAt: user.updated_at,
+        };
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: user,
+            data: formattedUser,
         });
     } catch (error) {
         res.status(500).json({
@@ -121,10 +144,22 @@ exports.updateUser = async (req, res) => {
             role,
             updatedAt,
         });
+
         const updatedUser = await userModel.findById(id);
+
+        const formattedUser = {
+            id: updatedUser.id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            username: updatedUser.username,
+            role: updatedUser.role,
+            createdAt: updatedUser.created_at,
+            updatedAt: updatedUser.updated_at,
+        };
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: updatedUser,
+            data: formattedUser,
         });
     } catch (error) {
         res.status(500).json({

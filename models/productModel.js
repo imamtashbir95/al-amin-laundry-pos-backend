@@ -5,34 +5,34 @@ const productModel = {
         const { id, name, price, type, createdAt, updatedAt } = data;
         await pool.query(
             `
-            INSERT INTO products (id, name, price, type, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO products (id, name, price, type, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             `,
             [id, name, price, type, createdAt, updatedAt]
         );
     },
 
     findMany: async () => {
-        const [products] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, price, type, createdAt, updatedAt
+            SELECT id, name, price, type, created_at, updated_at
             FROM products
-            WHERE isDeleted = 0
-            ORDER BY createdAt`
+            WHERE is_deleted = false
+            ORDER BY created_at`
         );
-        return products;
+        return result.rows;
     },
 
     findById: async (id) => {
-        const [product] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, price, type, createdAt, updatedAt 
+            SELECT id, name, price, type, created_at, updated_at 
             FROM products
-            WHERE isDeleted = 0 and id = ?
+            WHERE is_deleted = false AND id = $1
             `,
             [id]
         );
-        return product.length ? product[0] : null;
+        return result.rows[0] || null;
     },
 
     update: async (data) => {
@@ -40,11 +40,11 @@ const productModel = {
         await pool.query(
             `
             UPDATE products
-            SET name = ?,
-                price = ?,
-                type = ?,
-                updatedAt = ?
-            WHERE isDeleted = 0 && id = ?
+            SET name = $1,
+                price = $2,
+                type = $3,
+                updated_at = $4
+            WHERE is_deleted = false AND id = $5
             `,
             [name, price, type, updatedAt, id]
         );
@@ -54,8 +54,8 @@ const productModel = {
         await pool.query(
             `
             UPDATE products
-            SET isDeleted = 1
-            WHERE id = ?
+            SET is_deleted = true
+            WHERE id = $1
             `,
             [id]
         );

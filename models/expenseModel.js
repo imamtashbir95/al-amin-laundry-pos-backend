@@ -5,48 +5,48 @@ const expenseModel = {
         const { id, name, price, expenseDate, createdAt, updatedAt } = data;
         await pool.query(
             `
-            INSERT INTO expenses (id, name, price, expenseDate, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO expenses (id, name, price, expense_date, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             `,
             [id, name, price, expenseDate, createdAt, updatedAt]
         );
     },
 
     findMany: async () => {
-        const [expenses] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, price, expenseDate, createdAt, updatedAt
+            SELECT id, name, price, expenseDate, created_at, updated_at
             FROM expenses
-            WHERE isDeleted = 0
-            ORDER BY createdAt DESC
+            WHERE is_deleted = false
+            ORDER BY created_at DESC
             `
         );
-        return expenses;
+        return result.rows;
     },
 
     findManyByDate: async (date) => {
-        const [expenses] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, price, expenseDate, createdAt, updatedAt
+            SELECT id, name, price, expense_date, created_at, updated_at
             FROM expenses
-            WHERE isDeleted = 0 AND DATE(createdAt) = ?
-            ORDER BY createdAt DESC
+            WHERE is_deleted = false AND DATE(created_at) = $1
+            ORDER BY created_at DESC
             `,
             [date]
         );
-        return expenses;
+        return result.rows;
     },
 
     findById: async (id) => {
-        const [expense] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, price, expenseDate, createdAt, updatedAt
+            SELECT id, name, price, expenseDate, created_at, updated_at
             FROM expenses
-            WHERE isDeleted = 0 && id = ?
+            WHERE is_deleted = false AND id = $1
             `,
             [id]
         );
-        return expense.length ? expense[0] : null;
+        return result.rows[0] || null;
     },
 
     update: async (data) => {
@@ -54,11 +54,11 @@ const expenseModel = {
         await pool.query(
             `
             UPDATE expenses 
-            SET name = ?,
-                price = ?,
-                expenseDate = ?,
-                updatedAt = ?
-            WHERE isDeleted = 0 && id = ?
+            SET name = $1,
+                price = $2,
+                expense_date = $3,
+                updated_at = $4
+            WHERE is_deleted = false AND id = $5
             `,
             [name, price, expenseDate, updatedAt, id]
         );
@@ -68,8 +68,8 @@ const expenseModel = {
         await pool.query(
             `
             UPDATE expenses
-            SET isDeleted = 1
-            WHERE id = ?
+            SET is_deleted = true
+            WHERE id = $1
             `,
             [id]
         );

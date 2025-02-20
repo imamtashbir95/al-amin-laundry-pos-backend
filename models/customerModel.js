@@ -5,34 +5,34 @@ const customerModel = {
         const { id, name, phoneNumber, address, createdAt, updatedAt } = data;
         await pool.query(
             `
-            INSERT INTO customers (id, name, phoneNumber, address, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO customers (id, name, phone_number, address, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             `,
             [id, name, phoneNumber, address, createdAt, updatedAt]
         );
     },
 
     findMany: async () => {
-        const [customers] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, phoneNumber, address, createdAt, updatedAt
+            SELECT id, name, phone_number, address, created_at, updated_at
             FROM customers
-            WHERE isDeleted = 0
-            ORDER BY createdAt`
+            WHERE is_deleted = false
+            ORDER BY created_at`
         );
-        return customers;
+        return result.rows;
     },
 
     findById: async (id) => {
-        const [customer] = await pool.query(
+        const result = await pool.query(
             `
-            SELECT id, name, phoneNumber, address, createdAt, updatedAt
+            SELECT id, name, phone_number, address, created_at, updated_at
             FROM customers
-            WHERE isDeleted = 0 && id = ?
+            WHERE is_deleted = false AND id = $1
             `,
             [id]
         );
-        return customer.length ? customer[0] : null;
+        return result.rows[0] || null;
     },
 
     update: async (data) => {
@@ -40,11 +40,11 @@ const customerModel = {
         await pool.query(
             `
             UPDATE customers
-            SET name = ?,
-                phoneNumber = ?,
-                address = ?,
-                updatedAt = ?
-            WHERE isDeleted = 0 && id = ?
+            SET name = $1,
+                phone_number = $2,
+                address = $3,
+                updated_at = $4
+            WHERE is_deleted = false AND id = $5
             `,
             [name, phoneNumber, address, updatedAt, id]
         );
@@ -54,8 +54,8 @@ const customerModel = {
         await pool.query(
             `
             UPDATE customers
-            SET isDeleted = 1
-            WHERE id = ?
+            SET is_deleted = true
+            WHERE id = $1
             `,
             [id]
         );

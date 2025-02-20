@@ -17,8 +17,8 @@ const billDetailsModel = {
         } = data;
         await pool.query(
             `
-            INSERT INTO bill_details (id, billId, invoiceId, productId, qty, price, paymentStatus, status, finishDate, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO bill_details (id, bill_id, invoice_id, product_id, qty, price, payment_status, status, finish_date, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             `,
             [
                 id,
@@ -38,20 +38,20 @@ const billDetailsModel = {
 
     find: async (data) => {
         const { billId } = data;
-        const [details] = await pool.query(
+        const result = await pool.query(
             `
             SELECT 
-                bd.id AS detailId, bd.invoiceId, p.id AS productId,
-                p.name AS productName, p.price AS unitPrice, p.type, 
-                bd.qty, bd.price, bd.paymentStatus, bd.status, bd.finishDate, bd.createdAt, bd.updatedAt
+                bd.id AS detail_id, bd.invoice_id, p.id AS product_id,
+                p.name AS product_name, p.price AS unit_price, p.type, 
+                bd.qty, bd.price, bd.payment_status, bd.status, bd.finish_date, bd.created_at, bd.updated_at
             FROM bill_details bd
-            JOIN products p ON bd.productId = p.id
-            WHERE bd.billId = ?
-            ORDER BY bd.createdAt DESC
+            JOIN products p ON bd.product_id = p.id
+            WHERE bd.bill_id = $1
+            ORDER BY bd.created_at DESC
             `,
             [billId]
         );
-        return details;
+        return result.rows;
     },
 
     update: async (data) => {
@@ -69,15 +69,15 @@ const billDetailsModel = {
         await pool.query(
             `
             UPDATE bill_details
-            SET invoiceId = ?,
-                productId = ?,
-                qty = ?,
-                price = ?,
-                paymentStatus = ?,
-                status = ?,
-                finishDate = ?,
-                updatedAt = ?
-            WHERE id = ?`,
+            SET invoice_id = $1,
+                product_id = $2,
+                qty = $3,
+                price = $4,
+                payment_status = $5,
+                status = $6,
+                finish_date = $7,
+                updated_at = $8
+            WHERE id = $9`,
             [
                 invoiceId,
                 productId,

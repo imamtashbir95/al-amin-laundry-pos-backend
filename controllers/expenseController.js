@@ -39,9 +39,21 @@ exports.createExpense = async (req, res) => {
 exports.getAllExpenses = async (req, res) => {
     try {
         const expenses = await expenseModel.findMany();
+
+        const formattedExpenses = expenses.map(
+            ({ id, name, price, expense_date, created_at, updated_at }) => ({
+                id,
+                name,
+                price,
+                expenseDate: expense_date,
+                createdAt: created_at,
+                updatedAt: updated_at,
+            })
+        );
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: expenses,
+            data: formattedExpenses,
         });
     } catch (error) {
         res.status(500).json({
@@ -56,9 +68,21 @@ exports.getDateExpenses = async (req, res) => {
     try {
         const { date } = req.query;
         const expenses = await expenseModel.findManyByDate(date);
+
+        const formattedExpenses = expenses.map(
+            ({ id, name, price, expense_date, created_at, updated_at }) => ({
+                id,
+                name,
+                price,
+                expenseDate: expense_date,
+                createdAt: created_at,
+                updatedAt: updated_at,
+            })
+        );
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: expenses,
+            data: formattedExpenses,
         });
     } catch (error) {
         res.status(500).json({
@@ -81,9 +105,18 @@ exports.getExpenseById = async (req, res) => {
             });
         }
 
+        const formattedExpense = {
+            id: expense.id,
+            name: expense.name,
+            price: expense.price,
+            expenseDate: expense.expense_date,
+            createdAt: expense.created_at,
+            updatedAt: expense.updated_at,
+        };
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: expense,
+            data: formattedExpense,
         });
     } catch (error) {
         res.status(500).json({
@@ -118,10 +151,21 @@ exports.updateExpense = async (req, res) => {
             expenseDate: formattedExpenseDate,
             updatedAt,
         });
+
         const updatedExpense = await expenseModel.findById(id);
+
+        const formattedExpense = {
+            id: updatedExpense.id,
+            name: updatedExpense.name,
+            price: updatedExpense.price,
+            expenseDate: updatedExpense.expense_date,
+            createdAt: updatedExpense.created_at,
+            updatedAt: updatedExpense.updated_at,
+        }
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: updatedExpense,
+            data: formattedExpense,
         });
     } catch (error) {
         res.status(500).json({

@@ -23,15 +23,18 @@ exports.login = [
 
         try {
             const { username, password } = req.body;
-            const [user] = await pool.query(
-                "SELECT * FROM users WHERE username = ?",
+            // const [user] = await pool.query(
+            //     `SELECT * FROM users WHERE username = $1`,
+            //     [username]
+            // );
+
+            const result = await pool.query(
+                `SELECT * FROM users WHERE username = $1`,
                 [username]
             );
+            const user = result.rows[0];
 
-            if (
-                !user.length ||
-                !(await bcrypt.compare(password, user[0].password))
-            ) {
+            if (!user || !(await bcrypt.compare(password, user.password))) {
                 return res.status(401).json({
                     status: { code: 401, description: "Unauthorized" },
                     error: "Username atau kata sandi salah",
@@ -42,9 +45,9 @@ exports.login = [
                 {
                     iss: `${process.env.JWT_ISSUER}`,
                     iat: getCurrentTimestampUnix(),
-                    userId: user[0].id,
-                    name: user[0].name,
-                    role: user[0].role,
+                    userId: user.id,
+                    name: user.name,
+                    role: user.role,
                 },
                 process.env.JWT_SECRET,
                 {
@@ -92,12 +95,12 @@ exports.register = [
         const updatedAt = createdAt;
 
         try {
-            const [existingUser] = await userModel.findByUsernameOrEmail(
+            const existingUser = await userModel.findByUsernameOrEmail(
                 username,
                 email
-            )
+            );
 
-            if (!existingUser) {
+            if (existingUser) {
                 return res.status(409).json({
                     status: { code: 409, description: "Conflict" },
                     error: "Username atau e-mail sudah ada",
@@ -106,8 +109,8 @@ exports.register = [
 
             await pool.query(
                 `
-                INSERT INTO users (id, name, email, username, password, role, createdAt, updatedAt)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO users (id, name, email, username, password, role, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 `,
                 [
                     id,
