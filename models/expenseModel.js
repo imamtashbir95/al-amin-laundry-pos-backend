@@ -15,7 +15,7 @@ const expenseModel = {
     findMany: async () => {
         const result = await pool.query(
             `
-            SELECT id, name, price, expenseDate, created_at, updated_at
+            SELECT id, name, price, expense_date, created_at, updated_at
             FROM expenses
             WHERE is_deleted = false
             ORDER BY created_at DESC
@@ -40,7 +40,7 @@ const expenseModel = {
     findById: async (id) => {
         const result = await pool.query(
             `
-            SELECT id, name, price, expenseDate, created_at, updated_at
+            SELECT id, name, price, expense_date, created_at, updated_at
             FROM expenses
             WHERE is_deleted = false AND id = $1
             `,
