@@ -1,0 +1,11 @@
+{
+    "require-sort/require-sort": [
+        "error",
+        {
+            "ignoreCase": true,
+            "ignoreDeclarationSort": true,
+            "ignorePropertySort": true,
+            "propertySyntaxSortOrder": ["none", "multiple", "single"]
+        }
+    ]
+}

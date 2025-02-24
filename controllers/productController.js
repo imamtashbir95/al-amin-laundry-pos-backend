@@ -10,7 +10,7 @@ exports.createProduct = async (req, res) => {
     const updatedAt = createdAt;
 
     try {
-        await productModel.create({
+        const newProduct = await productModel.create({
             id,
             name,
             price,
@@ -18,9 +18,19 @@ exports.createProduct = async (req, res) => {
             createdAt,
             updatedAt,
         });
+
+        const formattedProduct = {
+            id: newProduct.id,
+            name: newProduct.name,
+            price: newProduct.price,
+            type: newProduct.type,
+            createdAt: newProduct.created_at,
+            updatedAt: newProduct.updated_at,
+        };
+
         res.status(201).json({
             status: { code: 201, description: "Ok" },
-            data: { id, name, price, type, createdAt, updatedAt },
+            data: formattedProduct,
         });
     } catch (error) {
         res.status(500).json({
@@ -63,8 +73,9 @@ exports.getProductById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const product = await productModel.findById(id);
-        if (!product) {
+        const existingProduct = await productModel.findById(id);
+
+        if (!existingProduct) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Produk tidak ditemukan",
@@ -143,14 +154,17 @@ exports.deleteProduct = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const product = await productModel.findById(id);
-        if (!product) {
+        const existingProduct = await productModel.findById(id);
+
+        if (!existingProduct) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Produk tidak ditemukan",
             });
         }
+
         await productModel.delete(id);
+
         res.status(204).end();
     } catch (error) {
         res.status(500).json({

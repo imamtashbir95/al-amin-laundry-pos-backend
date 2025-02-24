@@ -9,13 +9,13 @@ exports.createExpense = async (req, res) => {
     const { name, price, expenseDate } = req.body;
     const id = generateId();
     const createdAt = getCurrentDateAndTime();
-    const updatedAt = getCurrentDateAndTime();
+    const updatedAt = createdAt;
     const formattedExpenseDate = format(expenseDate, "yyyy-MM-dd HH:mm:ssXXX", {
-        timeZone: timeZone,
+        timeZone,
     }).replace("Z", "");
 
     try {
-        await expenseModel.create({
+        const newExpense = await expenseModel.create({
             id,
             name,
             price,
@@ -23,9 +23,19 @@ exports.createExpense = async (req, res) => {
             createdAt,
             updatedAt,
         });
+
+        const formatedExpense = {
+            id: newExpense.id,
+            name: newExpense.name,
+            price: newExpense.price,
+            expenseDate: newExpense.expense_date,
+            createdAt: newExpense.created_at,
+            updatedAt: newExpense.updated_at,
+        };
+
         res.status(201).json({
             status: { code: 201, description: "Ok" },
-            data: { id, name, price, expenseDate, createdAt, updatedAt },
+            data: formatedExpense,
         });
     } catch (error) {
         res.status(500).json({
@@ -97,8 +107,9 @@ exports.getExpenseById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const expense = await expenseModel.findById(id);
-        if (!expense) {
+        const existingExpense = await expenseModel.findById(id);
+
+        if (!existingExpense) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Pengeluaran tidak ditemukan",
@@ -131,7 +142,7 @@ exports.updateExpense = async (req, res) => {
     const { id, name, price, expenseDate } = req.body;
     const updatedAt = getCurrentDateAndTime();
     const formattedExpenseDate = format(expenseDate, "yyyy-MM-dd HH:mm:ssXXX", {
-        timeZone: timeZone,
+        timeZone,
     }).replace("Z", "");
 
     try {
@@ -161,7 +172,7 @@ exports.updateExpense = async (req, res) => {
             expenseDate: updatedExpense.expense_date,
             createdAt: updatedExpense.created_at,
             updatedAt: updatedExpense.updated_at,
-        }
+        };
 
         res.status(200).json({
             status: { code: 200, description: "Ok" },
@@ -180,14 +191,17 @@ exports.deleteExpense = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const expense = await expenseModel.findById(id);
-        if (!expense) {
+        const existingExpense = await expenseModel.findById(id);
+
+        if (!existingExpense) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Pengeluaran tidak ditemukan",
             });
         }
+
         await expenseModel.delete(id);
+
         res.status(204).end();
     } catch (error) {
         res.status(500).json({

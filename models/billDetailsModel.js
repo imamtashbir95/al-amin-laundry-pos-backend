@@ -15,10 +15,11 @@ const billDetailsModel = {
             createdAt,
             updatedAt,
         } = data;
-        await pool.query(
+        const result = await pool.query(
             `
             INSERT INTO bill_details (id, bill_id, invoice_id, product_id, qty, price, payment_status, status, finish_date, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING id, bill_id, invoice_id, product_id, qty, price, payment_status, status, finish_date, created_at, updated_at
             `,
             [
                 id,
@@ -34,6 +35,7 @@ const billDetailsModel = {
                 updatedAt,
             ]
         );
+        return result.rows[0];
     },
 
     find: async (data) => {

@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const { findByIdWithDeleted } = require("./customerModel");
 
 const userModel = {
     register: async (data) => {
@@ -12,10 +13,11 @@ const userModel = {
             createdAt,
             updatedAt,
         } = data;
-        await pool.query(
+        const result = await pool.query(
             `
             INSERT INTO users (id, name, email, username, password, role, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id, name, email, username, role, created_at, updated_at
             `,
             [
                 id,
@@ -28,6 +30,7 @@ const userModel = {
                 updatedAt,
             ]
         );
+        return result.rows[0];
     },
 
     findMany: async () => {
@@ -47,6 +50,18 @@ const userModel = {
             SELECT id, name, email, username, password, role, created_at, updated_at
             FROM users
             WHERE is_deleted = false AND id = $1
+            `,
+            [id]
+        );
+        return result.rows[0] || null;
+    },
+
+    findByIdWithDeleted: async (id) => {
+        const result = await pool.query(
+            `
+            SELECT id, name, email, username, password, role, created_at, updated_at
+            FROM users
+            WHERE id = $1
             `,
             [id]
         );

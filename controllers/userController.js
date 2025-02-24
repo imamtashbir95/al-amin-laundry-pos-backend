@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const generateId = require("../utils/generateId");
 const userModel = require("../models/userModel");
 const { getCurrentDateAndTime } = require("../utils/getCurrent");
-const pool = require("../config/db");
 
 // Register a new user
 exports.registerUser = async (req, res) => {
@@ -25,7 +24,7 @@ exports.registerUser = async (req, res) => {
             });
         }
 
-        await userModel.register({
+        const newUser = await userModel.register({
             id,
             name,
             email,
@@ -35,17 +34,20 @@ exports.registerUser = async (req, res) => {
             createdAt,
             updatedAt,
         });
+
+        const formattedUser = {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+            username: newUser.username,
+            role: newUser.role,
+            createdAt: newUser.created_at,
+            updatedAt: newUser.updated_at,
+        };
+
         res.status(201).json({
             status: { code: 201, description: "Ok" },
-            data: {
-                id,
-                name,
-                email,
-                username,
-                role,
-                createdAt,
-                updatedAt,
-            },
+            data: formattedUser,
         });
     } catch (error) {
         res.status(500).json({
@@ -89,8 +91,9 @@ exports.getUserById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const user = await userModel.findById(id);
-        if (!user) {
+        const existingUser = await userModel.findById(id);
+
+        if (!existingUser) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Karyawan tidak ditemukan",
@@ -174,14 +177,17 @@ exports.deleteUser = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const user = await userModel.findById(id);
-        if (!user) {
+        const existingUser = await userModel.findById(id);
+
+        if (!existingUser) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Karyawan tidak ditemukan",
             });
         }
+
         await userModel.delete(id);
+
         res.status(204).end();
     } catch (error) {
         res.status(500).json({

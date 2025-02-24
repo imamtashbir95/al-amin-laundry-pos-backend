@@ -10,7 +10,7 @@ exports.createCustomer = async (req, res) => {
     const updatedAt = createdAt;
 
     try {
-        await customerModel.create({
+        const newCustomer = await customerModel.create({
             id,
             name,
             phoneNumber,
@@ -18,9 +18,19 @@ exports.createCustomer = async (req, res) => {
             createdAt,
             updatedAt,
         });
+
+        const formattedCustomer = {
+            id: newCustomer.id,
+            name: newCustomer.name,
+            phoneNumber: newCustomer.phone_number,
+            address: newCustomer.address,
+            createdAt: newCustomer.created_at,
+            updatedAt: newCustomer.updated_at,
+        };
+
         res.status(201).json({
             status: { code: 201, description: "Ok" },
-            data: { id, name, phoneNumber, address, createdAt, updatedAt },
+            data: formattedCustomer,
         });
     } catch (error) {
         res.status(500).json({
@@ -63,8 +73,9 @@ exports.getCustomerById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const customer = await customerModel.findById(id);
-        if (!customer) {
+        const existingCustomer = await customerModel.findById(id);
+
+        if (!existingCustomer) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Pelanggan tidak ditemukan",
@@ -74,7 +85,7 @@ exports.getCustomerById = async (req, res) => {
         const formattedCustomer = {
             id: customer.id,
             name: customer.name,
-            phoneNumber: customer.phone_number, // Konversi snake_case ke camelCase
+            phoneNumber: customer.phone_number,
             address: customer.address,
             createdAt: customer.created_at,
             updatedAt: customer.updated_at,
@@ -143,14 +154,17 @@ exports.deleteCustomer = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const customer = await customerModel.findById(id);
-        if (!customer) {
+        const existingCustomer = await customerModel.findById(id);
+
+        if (!existingCustomer) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
                 error: "Pelanggan tidak ditemukan",
             });
         }
+
         await customerModel.delete(id);
+
         res.status(204).end();
     } catch (error) {
         res.status(500).json({

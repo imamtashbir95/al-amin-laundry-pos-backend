@@ -3,13 +3,15 @@ const pool = require("../config/db");
 const productModel = {
     create: async (data) => {
         const { id, name, price, type, createdAt, updatedAt } = data;
-        await pool.query(
+        const result = await pool.query(
             `
             INSERT INTO products (id, name, price, type, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, name, price, type, created_at, updated_at
             `,
             [id, name, price, type, createdAt, updatedAt]
         );
+        return result.rows[0];
     },
 
     findMany: async () => {

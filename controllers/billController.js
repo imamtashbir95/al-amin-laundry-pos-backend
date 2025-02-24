@@ -33,7 +33,7 @@ exports.createBill = async (req, res) => {
             });
         }
 
-        await billModel.create({
+        const newBill = await billModel.create({
             id,
             billDate,
             customerId,
@@ -58,7 +58,7 @@ exports.createBill = async (req, res) => {
                     }
                 ).replace("Z", "");
 
-                await billDetailsModel.create({
+                const newBillDetails = await billDetailsModel.create({
                     id: detailId,
                     billId: id,
                     invoiceId: detail.invoiceId,
@@ -73,9 +73,9 @@ exports.createBill = async (req, res) => {
                 });
 
                 return {
-                    id: detailId,
-                    billId: id,
-                    invoiceId: detail.invoiceId,
+                    id: newBillDetails.id,
+                    billId: newBillDetails.billId,
+                    invoiceId: newBillDetails.invoiceId,
                     product: {
                         id: product.id,
                         name: product.name,
@@ -84,13 +84,13 @@ exports.createBill = async (req, res) => {
                         createdAt: product.createdAt,
                         updatedAt: product.updatedAt,
                     },
-                    qty: detail.qty,
+                    qty: newBillDetails.qty,
                     price,
-                    paymentStatus: detail.paymentStatus,
-                    status: detail.status,
-                    finishDate,
-                    createdAt,
-                    updatedAt,
+                    paymentStatus: newBillDetails.paymentStatus,
+                    status: newBillDetails.status,
+                    finishDate: newBillDetails.finish_date,
+                    createdAt: newBillDetails.created_at,
+                    updatedAt: newBillDetails.updated_at,
                 };
             })
         );
@@ -100,8 +100,8 @@ exports.createBill = async (req, res) => {
         res.status(201).json({
             status: { code: 201, description: "Ok" },
             data: {
-                id,
-                billDate,
+                id: newBill.id,
+                billDate: newBill.bill_date,
                 customer: {
                     id: customer.id,
                     name: customer.name,
@@ -121,8 +121,8 @@ exports.createBill = async (req, res) => {
                     updatedAt: user.updated_at,
                 },
                 billDetails: enrichedBillDetails,
-                createdAt,
-                updatedAt,
+                createdAt: newBill.created_at,
+                updatedAt: newBill.updated_at,
             },
         });
     } catch (error) {
@@ -141,8 +141,10 @@ exports.getAllBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customer_id);
-                const user = await userModel.findById(bill.user_id);
+                const customer = await customerModel.findByIdWithDeleted(
+                    bill.customer_id
+                );
+                const user = await userModel.findByIdWithDeleted(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
@@ -216,8 +218,10 @@ exports.getReportInBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customer_id);
-                const user = await userModel.findById(bill.user_id);
+                const customer = await customerModel.findByIdWithDeleted(
+                    bill.customer_id
+                );
+                const user = await userModel.findByIdWithDeleted(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
@@ -291,8 +295,10 @@ exports.getReportOutBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customer_id);
-                const user = await userModel.findById(bill.user_id);
+                const customer = await customerModel.findByIdWithDeleted(
+                    bill.customer_id
+                );
+                const user = await userModel.findByIdWithDeleted(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
@@ -366,8 +372,10 @@ exports.getReportNotPaidOffBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customer_id);
-                const user = await userModel.findById(bill.user_id);
+                const customer = await customerModel.findByIdWithDeleted(
+                    bill.customer_id
+                );
+                const user = await userModel.findByIdWithDeleted(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
@@ -441,8 +449,10 @@ exports.getReportNotTakenYetBills = async (req, res) => {
 
         const enrichedBills = await Promise.all(
             bills.map(async (bill) => {
-                const customer = await customerModel.findById(bill.customer_id);
-                const user = await userModel.findById(bill.user_id);
+                const customer = await customerModel.findByIdWithDeleted(
+                    bill.customer_id
+                );
+                const user = await userModel.findByIdWithDeleted(bill.user_id);
 
                 const details = await billDetailsModel.find({
                     billId: bill.id,
@@ -522,8 +532,10 @@ exports.getBillById = async (req, res) => {
             });
         }
 
-        const customer = await customerModel.findById(bill.customer_id);
-        const user = await userModel.findById(bill.user_id);
+        const customer = await customerModel.findByIdWithDeleted(
+            bill.customer_id
+        );
+        const user = await userModel.findByIdWithDeleted(bill.user_id);
 
         const details = await billDetailsModel.find({
             billId: id,
