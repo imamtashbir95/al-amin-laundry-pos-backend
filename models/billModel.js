@@ -135,16 +135,18 @@ const billModel = {
 
     update: async (data) => {
         const { id, customerId, userId, updatedAt } = data;
-        await pool.query(
+        const result = await pool.query(
             `
             UPDATE bills
             SET customer_id = $1,
                 user_id = $2,
                 updated_at = $3
             WHERE is_deleted = false AND id = $4
+            RETURNING *
             `,
             [customerId, userId, updatedAt, id]
         );
+        return result.rows[0];
     },
 
     delete: async (id) => {

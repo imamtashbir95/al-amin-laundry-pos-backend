@@ -10,7 +10,9 @@ const pool = new Pool({
     port: 5432,
     ssl: {
         require: true,
-    }
+    },
+    connectionTimeoutMillis: 100000,
+    idleTimeoutMillis: 100000,
 });
 
 module.exports = pool;

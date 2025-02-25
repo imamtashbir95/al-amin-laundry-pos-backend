@@ -44,7 +44,7 @@ const billDetailsModel = {
             `
             SELECT 
                 bd.id AS detail_id, bd.invoice_id, p.id AS product_id,
-                p.name AS product_name, p.price AS unit_price, p.type, 
+                p.name AS product_name, p.price AS unit_price, p.type, p.created_at AS product_created_at, p.updated_at AS product_updated_at, 
                 bd.qty, bd.price, bd.payment_status, bd.status, bd.finish_date, bd.created_at, bd.updated_at
             FROM bill_details bd
             JOIN products p ON bd.product_id = p.id
@@ -68,7 +68,7 @@ const billDetailsModel = {
             finishDate,
             updatedAt,
         } = data;
-        await pool.query(
+        const result = await pool.query(
             `
             UPDATE bill_details
             SET invoice_id = $1,
@@ -79,7 +79,9 @@ const billDetailsModel = {
                 status = $6,
                 finish_date = $7,
                 updated_at = $8
-            WHERE id = $9`,
+            WHERE id = $9
+            RETURNING *
+            `,
             [
                 invoiceId,
                 productId,
@@ -92,6 +94,7 @@ const billDetailsModel = {
                 id,
             ]
         );
+        return result.rows[0];
     },
 };
 
