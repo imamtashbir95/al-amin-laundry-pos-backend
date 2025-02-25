@@ -102,10 +102,10 @@ const userModel = {
         await pool.query(
             `
             UPDATE users
-            SET email = CONCAT(email, '_deleted_', UNIX_TIMESTAMP()),
-                username = CONCAT(username, '_deleted_', UNIX_TIMESTAMP()),
-                is_deleted = true
-            WHERE id = $1
+            SET email = email || '_deleted_' || EXTRACT(EPOCH FROM NOW()),
+                username = username || '_deleted_' || EXTRACT(EPOCH FROM NOW()),
+                is_deleted = TRUE
+            WHERE id = $1;
             `,
             [id]
         );
