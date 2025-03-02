@@ -8,9 +8,9 @@ const pool = new Pool({
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     port: 5432,
-    // ssl: {
-    //     require: true,
-    // },
+    ssl: {
+        require: process.env.NODE_ENV === "production" ? true : false,
+    },
     connectionTimeoutMillis: 100000,
     idleTimeoutMillis: 100000,
 });
