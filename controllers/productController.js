@@ -83,12 +83,12 @@ exports.getProductById = async (req, res) => {
         }
 
         const formattedProduct = {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            type: product.type,
-            createdAt: product.created_at,
-            updatedAt: product.updated_at,
+            id: existingProduct.id,
+            name: existingProduct.name,
+            price: existingProduct.price,
+            type: existingProduct.type,
+            createdAt: existingProduct.created_at,
+            updatedAt: existingProduct.updated_at,
         };
 
         res.status(200).json({

@@ -83,12 +83,12 @@ exports.getCustomerById = async (req, res) => {
         }
 
         const formattedCustomer = {
-            id: customer.id,
-            name: customer.name,
-            phoneNumber: customer.phone_number,
-            address: customer.address,
-            createdAt: customer.created_at,
-            updatedAt: customer.updated_at,
+            id: existingCustomer.id,
+            name: existingCustomer.name,
+            phoneNumber: existingCustomer.phone_number,
+            address: existingCustomer.address,
+            createdAt: existingCustomer.created_at,
+            updatedAt: existingCustomer.updated_at,
         };
 
         res.status(200).json({

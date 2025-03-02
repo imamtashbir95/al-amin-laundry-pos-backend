@@ -117,12 +117,12 @@ exports.getExpenseById = async (req, res) => {
         }
 
         const formattedExpense = {
-            id: expense.id,
-            name: expense.name,
-            price: expense.price,
-            expenseDate: expense.expense_date,
-            createdAt: expense.created_at,
-            updatedAt: expense.updated_at,
+            id: existingExpense.id,
+            name: existingExpense.name,
+            price: existingExpense.price,
+            expenseDate: existingExpense.expense_date,
+            createdAt: existingExpense.created_at,
+            updatedAt: existingExpense.updated_at,
         };
 
         res.status(200).json({

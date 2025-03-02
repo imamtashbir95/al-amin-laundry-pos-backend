@@ -101,13 +101,13 @@ exports.getUserById = async (req, res) => {
         }
 
         const formattedUser = {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            username: user.username,
-            role: user.role,
-            createdAt: user.created_at,
-            updatedAt: user.updated_at,
+            id: existingUser.id,
+            name: existingUser.name,
+            email: existingUser.email,
+            username: existingUser.username,
+            role: existingUser.role,
+            createdAt: existingUser.created_at,
+            updatedAt: existingUser.updated_at,
         };
 
         res.status(200).json({

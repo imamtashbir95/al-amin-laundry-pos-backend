@@ -1,4 +1,5 @@
 const express = require("express");
+const twilio = require("twilio");
 const winston = require("winston");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
@@ -13,6 +14,65 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+const client = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+);
+
+app.post("/send-whatsapp", async (req, res) => {
+    const { phoneNumber, message } = req.body;
+
+    const toInternationalPhone = (phone) => phone.replace(/^0/, "62");
+
+    try {
+        const response = await client.messages.create({
+            body: message,
+            from: `whatsapp:+${process.env.TWILIO_WHATSAPP_NUMBER}`,
+            to: `whatsapp:+${toInternationalPhone(phoneNumber)}`,
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Pesan WhatsApp berhasil dikirim",
+            sid: response.sid,
+        });
+    } catch (error) {
+        console.error("Gagal mengirim pesan WhatsApp:", error);
+        res.status(500).json({
+            success: false,
+            message: "Gagal mengirim pesan WhatsApp",
+            error: error.message,
+        });
+    }
+});
+
+// client.messages
+//     .create({
+//         body: `
+// As-salāmu ʿalaikum wa-raḥmatu -llāhi wa-barakātuhᵘ̄  
+// Selamat datang di *Ummi Laundry*! 🧺✨  
+
+// Perum. Vila Rizki Ilhami, Kel. Bojong Nangka, Kec. Kelapa Dua, Kab. Tangerang, Banten 15810  
+// 📍 Depan Masjid Khoirurroziqin  
+// 🕒 Buka setiap hari, Jam 08.00 - 20.00 WIB  
+
+// Mohon pilih layanan yang Anda butuhkan:  
+// 1️⃣ *Cek Status Cucian*  
+// 2️⃣ *Jemput Laundry*  
+// 3️⃣ *Harga & Layanan*  
+// 4️⃣ *Promo & Diskon*  
+// 5️⃣ *Bantuan*  
+
+// Silakan ketik angka sesuai pilihan Anda. Kami siap membantu! 🤗  
+
+// Terima kasih telah mempercayakan cucian Anda kepada *Ummi Laundry*!
+// `,
+//         from: `whatsapp:+${process.env.TWILIO_WHATSAPP_NUMBER}`,
+//         to: `whatsapp:+6282128321689`,
+//     })
+//     .then((message) => console.log(message.sid))
+//     .done();
 
 app.use((req, res, next) => {
     logger.info(`${req.method} ${req.url}`);
