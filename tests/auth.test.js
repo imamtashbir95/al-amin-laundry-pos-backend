@@ -22,6 +22,8 @@ describe("Auth controller", () => {
             role: "admin",
         });
 
+        console.log("Register response:", response.body);
+
         expect(response.statusCode).toBe(201);
         expect(response.body.data.id).toBeDefined();
         expect(response.body.data.name).toBe("Eka Tiara");
