@@ -67,6 +67,8 @@ describe("Auth controller", () => {
             password: "dJvJ30%7gH6#%Oz",
         });
 
+        console.log("Login response:", response.body);
+
         expect(response.statusCode).toBe(201);
         expect(response.body.data.token).toBeDefined();
     });
