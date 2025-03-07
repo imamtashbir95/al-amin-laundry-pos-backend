@@ -42,7 +42,7 @@ jobs:
             - name: 🌱 Setup environment variables
               run: |
                   echo "DATABASE_URL=postgresql://postgres:lordvoldemort@localhost:5432/al_amin_laundry_pos" >> $GITHUB_ENV
-                  echp "JWT_ISSUER=imamarrahman" >> $GITHUB_ENV
+                  echo "JWT_ISSUER=imamarrahman" >> $GITHUB_ENV
                   echo "JWT_SECRET=wgzoawqghohs" >> $GITHUB_ENV
                   echo "JWT_LIFE_TIME=24" >> $GITHUB_ENV
 
