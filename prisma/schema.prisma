@@ -1,0 +1,82 @@
+generator client {
+	provider = "prisma-client-js"
+}
+
+datasource db {
+	provider = "postgresql"
+	url      = env("DATABASE_URL")
+}
+
+model User {
+	id           String     @id @default(uuid())
+	name         String
+	email        String     @unique
+	username     String     @unique
+	password     String
+	role         String
+	is_deleted   Boolean    @default(false)
+	created_at   DateTime   @default(now())
+	updated_at   DateTime   @updatedAt
+	bills        Bill[]
+}
+
+model Customer {
+	id           String     @id @default(uuid())
+	name         String
+	phone_number String
+	address      String
+	is_deleted   Boolean    @default(false)
+	created_at   DateTime   @default(now())
+	updated_at   DateTime   @updatedAt
+	bills        Bill[]
+}
+
+model Bill {
+	id           String       @id @default(uuid())
+	bill_date    DateTime     @default(now())
+	customer_id  String
+	user_id      String
+	is_deleted   Boolean      @default(false)
+	created_at   DateTime     @default(now())
+	updated_at   DateTime     @updatedAt
+	customer     Customer     @relation(fields: [customer_id], references: [id])
+	user         User         @relation(fields: [user_id], references: [id])
+	bill_details BillDetail[]
+}
+
+model BillDetail {
+	id             String     @id @default(uuid())
+	bill_id        String
+	invoice_id     String
+	product_id     String
+	qty            Int
+	price          Float
+	payment_status String
+	status         String
+	finish_date    DateTime
+	created_at     DateTime   @default(now())
+	updated_at     DateTime   @updatedAt
+	bill           Bill       @relation(fields: [bill_id], references: [id])
+	product        Product    @relation(fields: [product_id], references: [id])
+}
+
+model Product {
+	id           String       @id @default(uuid())
+	name         String
+	price        Int
+	type         String
+	is_deleted   Boolean      @default(false)
+	created_at   DateTime     @default(now())
+	updated_at   DateTime     @updatedAt
+	bill_details BillDetail[]
+}
+
+model Expense {
+	id           String     @id @default(uuid())
+	name         String
+	price        Int
+	expense_date DateTime
+	is_deleted   Boolean    @default(false)
+	created_at   DateTime   @default(now())
+	updated_at   DateTime   @updatedAt
+}

@@ -1,0 +1,56 @@
+name: Node.js CI
+
+on:
+    push:
+        branches: [master, develop]
+    pull_request:
+        branches: [master, develop]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        services:
+            db:
+                image: postgres:13
+                env:
+                    POSTGRES_DB: al_amin_laundry_pos
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: lordvoldemort
+                ports:
+                    - 5432:5432
+                options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5s
+
+        strategy:
+            matrix:
+                node-version: [22.12.x]
+
+        steps:
+            - uses: actions/checkout@v2
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+
+            - name: 🐳 Check Docker version
+              run: docker --version
+
+            - name: ⚙️ Run CI command
+              run: npm ci
+
+            - name: 🔄️ Run migrations
+              run: npx prisma migrate deploy
+
+            - name: 🌱 Setup environment variables
+              run: |
+                  echo "DATABASE_URL=postgresql://postgres:lordvoldemort@localhost:5432/al_amin_laundry_pos" >> $GITHUB_ENV
+
+            - name: 🔍 Check linting
+              run: npm run lint
+
+            - name: 🧪 Run the tests
+              run: npm run test
+
+            - name: 🔨 Build
+              run: npm run start

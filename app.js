@@ -34,14 +34,14 @@ app.post("/send-whatsapp", async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Pesan WhatsApp berhasil dikirim",
+            message: "WhatsApp message sent successfully",
             sid: response.sid,
         });
     } catch (error) {
-        console.error("Gagal mengirim pesan WhatsApp:", error);
+        console.error("Failed to send WhatsApp message:", error);
         res.status(500).json({
             success: false,
-            message: "Gagal mengirim pesan WhatsApp",
+            message: "Failed to send WhatsApp message",
             error: error.message,
         });
     }
@@ -51,7 +51,7 @@ app.post("/send-whatsapp", async (req, res) => {
 //     .create({
 //         body: `
 // As-salāmu ʿalaikum wa-raḥmatu -llāhi wa-barakātuhᵘ̄  
-// Selamat datang di *Ummi Laundry*! 🧺✨  
+// Selamat datang di *Umi Laundry*! 🧺✨  
 
 // Perum. Vila Rizki Ilhami, Kel. Bojong Nangka, Kec. Kelapa Dua, Kab. Tangerang, Banten 15810  
 // 📍 Depan Masjid Khoirurroziqin  

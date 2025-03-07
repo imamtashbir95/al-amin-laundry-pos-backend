@@ -1,4 +1,4 @@
-const pool = require("../config/db");
+const prisma = require("../config/db");
 
 const billDetailsModel = {
     create: async (data) => {
@@ -15,45 +15,49 @@ const billDetailsModel = {
             createdAt,
             updatedAt,
         } = data;
-        const result = await pool.query(
-            `
-            INSERT INTO bill_details (id, bill_id, invoice_id, product_id, qty, price, payment_status, status, finish_date, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            RETURNING id, bill_id, invoice_id, product_id, qty, price, payment_status, status, finish_date, created_at, updated_at
-            `,
-            [
+        return await prisma.billDetail.create({
+            data: {
                 id,
-                billId,
-                invoiceId,
-                productId,
+                bill_id: billId,
+                invoice_id: invoiceId,
+                product_id: productId,
                 qty,
                 price,
-                paymentStatus,
+                payment_status: paymentStatus,
                 status,
-                finishDate,
-                createdAt,
-                updatedAt,
-            ]
-        );
-        return result.rows[0];
+                finish_date: finishDate,
+                created_at: createdAt,
+                updated_at: updatedAt,
+            },
+            select: {
+                id: true,
+                bill_id: true,
+                invoice_id: true,
+                product_id: true,
+                qty: true,
+                price: true,
+                payment_status: true,
+                status: true,
+                finish_date: true,
+                created_at: true,
+                updated_at: true,
+            },
+        });
     },
 
     find: async (data) => {
         const { billId } = data;
-        const result = await pool.query(
-            `
-            SELECT 
-                bd.id AS detail_id, bd.invoice_id, p.id AS product_id,
-                p.name AS product_name, p.price AS unit_price, p.type, p.created_at AS product_created_at, p.updated_at AS product_updated_at, 
-                bd.qty, bd.price, bd.payment_status, bd.status, bd.finish_date, bd.created_at, bd.updated_at
-            FROM bill_details bd
-            JOIN products p ON bd.product_id = p.id
-            WHERE bd.bill_id = $1
-            ORDER BY bd.created_at DESC
-            `,
-            [billId]
-        );
-        return result.rows;
+        return await prisma.billDetail.findMany({
+            where: {
+                bill_id: billId,
+            },
+            orderBy: {
+                created_at: "desc",
+            },
+            include: {
+                product: true,
+            },
+        });
     },
 
     update: async (data) => {
@@ -68,33 +72,32 @@ const billDetailsModel = {
             finishDate,
             updatedAt,
         } = data;
-        const result = await pool.query(
-            `
-            UPDATE bill_details
-            SET invoice_id = $1,
-                product_id = $2,
-                qty = $3,
-                price = $4,
-                payment_status = $5,
-                status = $6,
-                finish_date = $7,
-                updated_at = $8
-            WHERE id = $9
-            RETURNING *
-            `,
-            [
-                invoiceId,
-                productId,
+        return await prisma.billDetail.update({
+            where: { id },
+            data: {
+                invoice_id: invoiceId,
+                product_id: productId,
                 qty,
                 price,
-                paymentStatus,
+                payment_status: paymentStatus,
                 status,
-                finishDate,
-                updatedAt,
-                id,
-            ]
-        );
-        return result.rows[0];
+                finish_date: finishDate,
+                updated_at: updatedAt,
+            },
+            select: {
+                id: true,
+                bill_id: true,
+                invoice_id: true,
+                product_id: true,
+                qty: true,
+                price: true,
+                payment_status: true,
+                status: true,
+                finish_date: true,
+                created_at: true,
+                updated_at: true,
+            },
+        });
     },
 };
 

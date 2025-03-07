@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+    db:
+        image: postgres:13
+        environment:
+            POSTGRES_DB: al_amin_laundry_pos
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: lordvoldemort
+        ports:
+            - "5432:5432"

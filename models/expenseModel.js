@@ -1,80 +1,79 @@
-const pool = require("../config/db");
+const prisma = require("../config/db");
 
 const expenseModel = {
     create: async (data) => {
         const { id, name, price, expenseDate, createdAt, updatedAt } = data;
-        const result = await pool.query(
-            `
-            INSERT INTO expenses (id, name, price, expense_date, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, name, price, expense_date, created_at, updated_at
-            `,
-            [id, name, price, expenseDate, createdAt, updatedAt]
-        );
-        return result.rows[0];
+        return await prisma.expense.create({
+            data: {
+                id,
+                name,
+                price,
+                expense_date: expenseDate,
+                created_at: createdAt,
+                updated_at: updatedAt,
+            },
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                expense_date: true,
+                created_at: true,
+                updated_at: true,
+            },
+        });
     },
 
     findMany: async () => {
-        const result = await pool.query(
-            `
-            SELECT id, name, price, expense_date, created_at, updated_at
-            FROM expenses
-            WHERE is_deleted = false
-            ORDER BY created_at DESC
-            `
-        );
-        return result.rows;
+        return await prisma.expense.findMany({
+            where: { is_deleted: false },
+            orderBy: { created_at: "asc" },
+        });
     },
 
     findManyByDate: async (date) => {
-        const result = await pool.query(
-            `
-            SELECT id, name, price, expense_date, created_at, updated_at
-            FROM expenses
-            WHERE is_deleted = false AND DATE(created_at) = $1
-            ORDER BY created_at DESC
-            `,
-            [date]
-        );
-        return result.rows;
+        const startDate = new Date(date);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(date);
+        endDate.setHours(23, 59, 59, 999);
+
+        return await prisma.expense.findMany({
+            where: {
+                is_deleted: false,
+                created_at: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+            },
+            orderBy: { created_at: "asc" },
+        });
     },
 
     findById: async (id) => {
-        const result = await pool.query(
-            `
-            SELECT id, name, price, expense_date, created_at, updated_at
-            FROM expenses
-            WHERE is_deleted = false AND id = $1
-            `,
-            [id]
-        );
-        return result.rows[0] || null;
+        return await prisma.expense.findFirst({
+            where: { id, is_deleted: false },
+        });
     },
 
     update: async (data) => {
         const { id, name, price, expenseDate, updatedAt } = data;
-        await pool.query(
-            `
-            UPDATE expenses 
-            SET name = $1,
-                price = $2,
-                expense_date = $3,
-                updated_at = $4
-            WHERE is_deleted = false AND id = $5
-            `,
-            [name, price, expenseDate, updatedAt, id]
-        );
+        return await prisma.expense.update({
+            where: { id, is_deleted: false },
+            data: {
+                name,
+                price,
+                expense_date: expenseDate,
+                updated_at: updatedAt,
+            },
+        });
     },
 
     delete: async (id) => {
-        await pool.query(
-            `
-            UPDATE expenses
-            SET is_deleted = true
-            WHERE id = $1
-            `,
-            [id]
-        );
+        return await prisma.expense.update({
+            where: { id },
+            data: {
+                is_deleted: true,
+            },
+        });
     },
 };
 

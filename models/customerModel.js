@@ -1,78 +1,67 @@
-const pool = require("../config/db");
+const prisma = require("../config/db");
 
 const customerModel = {
     create: async (data) => {
         const { id, name, phoneNumber, address, createdAt, updatedAt } = data;
-        const result = await pool.query(
-            `
-            INSERT INTO customers (id, name, phone_number, address, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, name, phone_number, address, created_at, updated_at
-            `,
-            [id, name, phoneNumber, address, createdAt, updatedAt]
-        );
-        return result.rows[0];
+        return await prisma.customer.create({
+            data: {
+                id,
+                name,
+                phone_number: phoneNumber,
+                address,
+                created_at: createdAt,
+                updated_at: updatedAt,
+            },
+            select: {
+                id: true,
+                name: true,
+                phone_number: true,
+                address: true,
+                created_at: true,
+                updated_at: true,
+            },
+        });
     },
 
     findMany: async () => {
-        const result = await pool.query(
-            `
-            SELECT id, name, phone_number, address, created_at, updated_at
-            FROM customers
-            WHERE is_deleted = false
-            ORDER BY created_at`
-        );
-        return result.rows;
+        return await prisma.customer.findMany({
+            where: { is_deleted: false },
+            orderBy: { created_at: "asc" },
+        });
     },
 
     findById: async (id) => {
-        const result = await pool.query(
-            `
-            SELECT id, name, phone_number, address, created_at, updated_at
-            FROM customers
-            WHERE is_deleted = false AND id = $1
-            `,
-            [id]
-        );
-        return result.rows[0] || null;
+        return await prisma.customer.findFirst({
+            where: { id, is_deleted: false },
+        });
     },
 
     findByIdWithDeleted: async (id) => {
-        const result = await pool.query(
-            `
-            SELECT id, name, phone_number, address, created_at, updated_at
-            FROM customers
-            WHERE id = $1
-            `,
-            [id]
-        );
-        return result.rows[0] || null;
+        return await prisma.customer.findUnique({
+            where: { id },
+        });
     },
 
     update: async (data) => {
         const { id, name, phoneNumber, address, updatedAt } = data;
-        await pool.query(
-            `
-            UPDATE customers
-            SET name = $1,
-                phone_number = $2,
-                address = $3,
-                updated_at = $4
-            WHERE is_deleted = false AND id = $5
-            `,
-            [name, phoneNumber, address, updatedAt, id]
-        );
+        return await prisma.customer.update({
+            where: { id, is_deleted: false },
+            data: {
+                name,
+                phone_number: phoneNumber,
+                address,
+                updated_at: updatedAt,
+            },
+        });
     },
 
     delete: async (id) => {
-        await pool.query(
-            `
-            UPDATE customers
-            SET is_deleted = true
-            WHERE id = $1
-            `,
-            [id]
-        );
+        return await prisma.customer.update({
+            where: { id },
+            data: {
+                is_deleted: true,
+            },
+        });
     },
 };
 

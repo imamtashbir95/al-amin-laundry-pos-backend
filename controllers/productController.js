@@ -78,7 +78,7 @@ exports.getProductById = async (req, res) => {
         if (!existingProduct) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Produk tidak ditemukan",
+                error: "Product not found",
             });
         }
 
@@ -114,7 +114,7 @@ exports.updateProduct = async (req, res) => {
         if (!existingProduct) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Produk tidak ditemukan",
+                error: "Product not found",
             });
         }
 
@@ -159,7 +159,7 @@ exports.deleteProduct = async (req, res) => {
         if (!existingProduct) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Produk tidak ditemukan",
+                error: "Product not found",
             });
         }
 

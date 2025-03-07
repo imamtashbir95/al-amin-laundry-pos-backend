@@ -78,7 +78,7 @@ exports.getCustomerById = async (req, res) => {
         if (!existingCustomer) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Pelanggan tidak ditemukan",
+                error: "Customer not found",
             });
         }
 
@@ -114,7 +114,7 @@ exports.updateCustomer = async (req, res) => {
         if (!existingCustomer) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Pelanggan tidak ditemukan",
+                error: "Customer not found",
             });
         }
 
@@ -131,7 +131,7 @@ exports.updateCustomer = async (req, res) => {
         const formattedCustomer = {
             id: updatedCustomer.id,
             name: updatedCustomer.name,
-            phoneNumber: updatedCustomer.phone_number, // Konversi snake_case ke camelCase
+            phoneNumber: updatedCustomer.phone_number,
             address: updatedCustomer.address,
             createdAt: updatedCustomer.created_at,
             updatedAt: updatedCustomer.updated_at,
@@ -159,7 +159,7 @@ exports.deleteCustomer = async (req, res) => {
         if (!existingCustomer) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Pelanggan tidak ditemukan",
+                error: "Customer not found",
             });
         }
 

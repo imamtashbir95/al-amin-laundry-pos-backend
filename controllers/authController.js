@@ -1,13 +1,13 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
-const pool = require("../config/db");
 const generateId = require("../utils/generateId");
 const {
     getCurrentDateAndTime,
     getCurrentTimestampUnix,
 } = require("../utils/getCurrent");
 const userModel = require("../models/userModel");
+const prisma = require("../config/db");
 
 exports.login = [
     body("username").notEmpty().withMessage("Username is required"),
@@ -23,16 +23,20 @@ exports.login = [
 
         try {
             const { username, password } = req.body;
-            // const [user] = await pool.query(
-            //     `SELECT * FROM users WHERE username = $1`,
-            //     [username]
-            // );
 
-            const result = await pool.query(
-                `SELECT * FROM users WHERE username = $1`,
-                [username]
-            );
-            const user = result.rows[0];
+            const user = await prisma.user.findFirst({
+                where: { username },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    password: true,
+                    role: true,
+                    created_at: true,
+                    updated_at: true,
+                },
+            });
 
             if (!user || !(await bcrypt.compare(password, user.password))) {
                 return res.status(401).json({
@@ -107,33 +111,38 @@ exports.register = [
                 });
             }
 
-            await pool.query(
-                `
-                INSERT INTO users (id, name, email, username, password, role, created_at, updated_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                `,
-                [
-                    id,
-                    name,
-                    email,
-                    username,
-                    hashedPassword,
-                    role,
-                    createdAt,
-                    updatedAt,
-                ]
-            );
-
-            res.status(201).json({
-                status: { code: 201, description: "Ok" },
+            const newUser = await prisma.user.create({
                 data: {
                     id,
                     name,
                     email,
                     username,
+                    password: hashedPassword,
                     role,
-                    createdAt,
-                    updatedAt,
+                    created_at: createdAt,
+                    updated_at: updatedAt,
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    role: true,
+                    created_at: true,
+                    updated_at: true,
+                },
+            });
+
+            res.status(201).json({
+                status: { code: 201, description: "Ok" },
+                data: {
+                    id: newUser.id,
+                    name: newUser.name,
+                    email: newUser.email,
+                    username: newUser.username,
+                    role: newUser.role,
+                    createdAt: newUser.created_at,
+                    updatedAt: newUser.updated_at,
                 },
             });
         } catch (error) {
