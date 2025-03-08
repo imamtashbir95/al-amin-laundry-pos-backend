@@ -46,7 +46,6 @@ jobs:
                   echo "JWT_SECRET=wgzoawqghohs" >> $GITHUB_ENV
                   echo "JWT_LIFE_TIME=24" >> $GITHUB_ENV
 
-
             - name: 🔄️ Run migrations
               run: npx prisma migrate deploy
 
@@ -55,3 +54,8 @@ jobs:
 
             - name: 🧪 Run the tests
               run: npm run test:ci
+
+            - name: 🔄️ Run migrations for preview and production
+              run: npx prisma migrate deploy
+              env:
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
