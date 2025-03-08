@@ -1,163 +1,154 @@
-const pool = require("../config/db");
+const prisma = require("../config/db");
 
 const billModel = {
     create: async (data) => {
         const { id, billDate, customerId, userId, createdAt, updatedAt } = data;
-        const result = await pool.query(
-            `
-            INSERT INTO bills (id, bill_date, customer_id, user_id, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, bill_date, customer_id, user_id, created_at, updated_at
-            `,
-            [id, billDate, customerId, userId, createdAt, updatedAt]
-        );
-        return result.rows[0];
+        return await prisma.bill.create({
+            data: {
+                id,
+                bill_date: billDate,
+                customer_id: customerId,
+                user_id: userId,
+                created_at: createdAt,
+                updated_at: updatedAt,
+            },
+            select: {
+                id: true,
+                bill_date: true,
+                customer_id: true,
+                user_id: true,
+                created_at: true,
+                updated_at: true,
+            },
+        });
     },
 
     findMany: async () => {
-        const result = await pool.query(
-            `
-            SELECT
-                b.id, b.bill_date, b.created_at, b.updated_at, 
-                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
-                b.user_id
-            FROM bills b
-            JOIN customers c ON b.customer_id = c.id
-            WHERE b.is_deleted = false
-            ORDER BY b.created_at DESC
-            `
-        );
-        return result.rows;
+        return await prisma.bill.findMany({
+            where: { is_deleted: false },
+            orderBy: { created_at: "desc" },
+            include: {
+                customer: true,
+            },
+        });
     },
 
     findReportIn: async (date) => {
-        const result = await pool.query(
-            `
-            SELECT
-                b.id, b.bill_date, b.created_at, b.updated_at, 
-                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
-                b.user_id
-            FROM bills b
-            JOIN customers c ON b.customer_id = c.id
-            WHERE
-                b.is_deleted = false
-                AND DATE(b.created_at) = $1
-            ORDER BY b.created_at DESC
-            `,
-            [date]
-        );
-        return result.rows;
+        const startDate = new Date(date);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(date);
+        endDate.setHours(23, 59, 59, 999);
+
+        return await prisma.bill.findMany({
+            where: {
+                is_deleted: false,
+                created_at: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+            },
+            orderBy: { created_at: "desc" },
+            include: {
+                customer: true,
+            },
+        });
     },
 
     findReportOut: async (date) => {
-        const result = await pool.query(
-            `
-            SELECT
-                b.id, b.bill_date, b.created_at, b.updated_at, 
-                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
-                b.user_id,
-                bd.finish_date, bd.payment_status, bd.status
-            FROM bills b
-            JOIN customers c ON b.customer_id = c.id
-            JOIN bill_details bd ON b.id = bd.bill_id
-            WHERE
-                b.is_deleted = false
-                AND DATE(bd.finish_date) = $1
-                AND bd.payment_status = 'sudah-dibayar'
-                AND (bd.status = 'selesai' OR bd.status = 'diambil')
-            ORDER BY b.created_at DESC
-            `,
-            [date]
-        );
-        return result.rows;
+        const startDate = new Date(date);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(date);
+        endDate.setHours(23, 59, 59, 999);
+
+        return await prisma.bill.findMany({
+            where: {
+                is_deleted: false,
+                bill_details: {
+                    some: {
+                        finish_date: {
+                            gte: startDate,
+                            lte: endDate,
+                        },
+                        payment_status: "sudah-dibayar",
+                        status: { in: ["selesai", "diambil"] },
+                    },
+                },
+            },
+            orderBy: { created_at: "desc" },
+            include: {
+                customer: true,
+                bill_details: true,
+            },
+        });
     },
 
     findReportNotPaidOff: async (date) => {
-        const result = await pool.query(
-            `
-            SELECT
-                b.id, b.bill_date, b.created_at, b.updated_at, 
-                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
-                b.user_id,
-                bd.finish_date, bd.payment_status, bd.status
-            FROM bills b
-            JOIN customers c ON b.customer_id = c.id
-            JOIN bill_details bd ON b.id = bd.bill_id
-            WHERE
-                b.is_deleted = false
-                AND DATE(bd.finish_date) <= $1
-                AND bd.payment_status = 'belum-dibayar'
-            ORDER BY b.created_at DESC
-            `,
-            [date]
-        );
-        return result.rows;
+        return await prisma.bill.findMany({
+            where: {
+                is_deleted: false,
+                bill_details: {
+                    some: {
+                        finish_date: { lte: new Date(date) },
+                        payment_status: "belum-dibayar",
+                    },
+                },
+            },
+            orderBy: { created_at: "desc" },
+            include: { customer: true, bill_details: true },
+        });
     },
 
     findReportNotTakenYet: async (date) => {
-        const result = await pool.query(
-            `
-            SELECT
-                b.id, b.bill_date, b.created_at, b.updated_at, 
-                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
-                b.user_id,
-                bd.finish_date, bd.payment_status, bd.status
-            FROM bills b
-            JOIN customers c ON b.customer_id = c.id
-            JOIN bill_details bd ON b.id = bd.bill_id
-            WHERE
-                b.is_deleted = false
-                AND DATE(bd.finish_date) <= $1
-                AND bd.payment_status = 'sudah-dibayar'
-                AND bd.status = 'selesai'
-            ORDER BY b.created_at DESC
-            `,
-            [date]
-        );
-        return result.rows;
+        return await prisma.bill.findMany({
+            where: {
+                is_deleted: false,
+                bill_details: {
+                    some: {
+                        finish_date: { lte: new Date(date) },
+                        payment_status: "sudah-dibayar",
+                        status: "selesai",
+                    },
+                },
+            },
+            orderBy: { created_at: "desc" },
+            include: { customer: true, bill_details: true },
+        });
     },
 
     findById: async (id) => {
-        const result = await pool.query(
-            `
-            SELECT  
-                b.id, b.bill_date, b.created_at, b.updated_at,
-                c.id AS customer_id, c.name AS customer_name, c.phone_number, c.address,
-                b.user_id
-            FROM bills b
-            JOIN customers c ON b.customer_id = c.id
-            WHERE b.is_deleted = false AND b.id = $1
-            `,
-            [id]
-        );
-        return result.rows[0] || null;
+        return await prisma.bill.findFirst({
+            where: { id, is_deleted: false },
+            include: { customer: true },
+        });
     },
 
     update: async (data) => {
         const { id, customerId, userId, updatedAt } = data;
-        const result = await pool.query(
-            `
-            UPDATE bills
-            SET customer_id = $1,
-                user_id = $2,
-                updated_at = $3
-            WHERE is_deleted = false AND id = $4
-            RETURNING *
-            `,
-            [customerId, userId, updatedAt, id]
-        );
-        return result.rows[0];
+        return await prisma.bill.update({
+            where: { id, is_deleted: false },
+            data: {
+                customer_id: customerId,
+                user_id: userId,
+                updated_at: updatedAt,
+            },
+            select: {
+                id: true,
+                bill_date: true,
+                customer_id: true,
+                user_id: true,
+                created_at: true,
+                updated_at: true,
+            },
+        });
     },
 
     delete: async (id) => {
-        await pool.query(
-            `
-            UPDATE bills
-            SET is_deleted = true
-            WHERE id = $1
-            `,
-            [id]
-        );
+        return await prisma.bill.update({
+            where: { id },
+            data: {
+                is_deleted: true,
+            },
+        });
     },
 };
 

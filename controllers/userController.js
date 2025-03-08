@@ -96,7 +96,7 @@ exports.getUserById = async (req, res) => {
         if (!existingUser) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Karyawan tidak ditemukan",
+                error: "Employee not found",
             });
         }
 
@@ -134,7 +134,7 @@ exports.updateUser = async (req, res) => {
         if (!existingUser) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Karyawan tidak ditemukan",
+                error: "Employee not found",
             });
         }
 
@@ -182,7 +182,7 @@ exports.deleteUser = async (req, res) => {
         if (!existingUser) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Karyawan tidak ditemukan",
+                error: "Employee not found",
             });
         }
 
@@ -201,9 +201,22 @@ exports.deleteUser = async (req, res) => {
 exports.getAllUsersExceptAdmin = async (req, res) => {
     try {
         const users = await userModel.findManyExceptAdmin();
+
+        const formattedUsers = users.map(
+            ({ id, name, email, username, role, created_at, updated_at }) => ({
+                id,
+                name,
+                email,
+                username,
+                role,
+                createdAt: created_at,
+                updatedAt: updated_at,
+            })
+        );
+
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: users,
+            data: formattedUsers,
         });
     } catch (error) {
         res.status(500).json({

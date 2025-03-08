@@ -1,19 +1,13 @@
-const { format } = require("date-fns-tz");
-const timeZone = "UTC";
 const customerModel = require("../models/customerModel");
 const userModel = require("../models/userModel");
 const productModel = require("../models/productModel");
 const billDetailsModel = require("../models/billDetailsModel");
 const generateId = require("../utils/generateId");
 
-// Format tanggal ke format yang diinginkan
 const formatDate = (date) => {
-    return format(new Date(date), "yyyy-MM-dd HH:mm:ssXXX", {
-        timeZone,
-    }).replace("Z", "");
+    return new Date(date);
 };
 
-// Enrich bill details dengan data produk
 const enrichBillDetails = async (details, billId, updatedAt, operation) => {
     if (!["create", "update"].includes(operation))
         throw new Error("Invalid operation");
@@ -21,7 +15,7 @@ const enrichBillDetails = async (details, billId, updatedAt, operation) => {
     return Promise.all(
         details.map(async (detail) => {
             const product = await productModel.findById(detail.product.id);
-            if (!product) throw new Error("Produk tidak ditemukan");
+            if (!product) throw new Error("Product not found");
 
             const price = product.price * detail.qty;
             const finishDate = formatDate(detail.finishDate);
@@ -75,7 +69,6 @@ const enrichBillDetails = async (details, billId, updatedAt, operation) => {
     );
 };
 
-// Enrich bill dengan data customer dan user
 const enrichBill = async (bill) => {
     const [customer, user] = await Promise.all([
         customerModel.findByIdWithDeleted(bill.customer_id),
@@ -85,16 +78,16 @@ const enrichBill = async (bill) => {
     const details = await billDetailsModel.find({ billId: bill.id });
 
     const formattedDetails = details.map((detail) => ({
-        id: detail.detail_id,
+        id: detail.id,
         billId: bill.id,
         invoiceId: detail.invoice_id,
         product: {
-            id: detail.product_id,
-            name: detail.product_name,
-            price: detail.unit_price,
-            type: detail.type,
-            createdAt: detail.product_created_at,
-            updatedAt: detail.product_updated_at,
+            id: detail.product.id,
+            name: detail.product.name,
+            price: detail.product.price,
+            type: detail.product.type,
+            createdAt: detail.product.created_at,
+            updatedAt: detail.product.updated_at,
         },
         qty: detail.qty,
         price: detail.price,

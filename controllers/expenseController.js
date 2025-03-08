@@ -1,8 +1,10 @@
 const generateId = require("../utils/generateId");
 const expenseModel = require("../models/expenseModel");
 const { getCurrentDateAndTime } = require("../utils/getCurrent");
-const { format } = require("date-fns-tz");
-const timeZone = "UTC";
+
+const formatDate = (date) => {
+    return new Date(date);
+};
 
 // Create a new expense
 exports.createExpense = async (req, res) => {
@@ -10,9 +12,7 @@ exports.createExpense = async (req, res) => {
     const id = generateId();
     const createdAt = getCurrentDateAndTime();
     const updatedAt = createdAt;
-    const formattedExpenseDate = format(expenseDate, "yyyy-MM-dd HH:mm:ssXXX", {
-        timeZone,
-    }).replace("Z", "");
+    const formattedExpenseDate = formatDate(expenseDate);
 
     try {
         const newExpense = await expenseModel.create({
@@ -112,7 +112,7 @@ exports.getExpenseById = async (req, res) => {
         if (!existingExpense) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Pengeluaran tidak ditemukan",
+                error: "Expense not found",
             });
         }
 
@@ -137,13 +137,11 @@ exports.getExpenseById = async (req, res) => {
     }
 };
 
-// Update expense by ID
+// Update existing expense
 exports.updateExpense = async (req, res) => {
     const { id, name, price, expenseDate } = req.body;
     const updatedAt = getCurrentDateAndTime();
-    const formattedExpenseDate = format(expenseDate, "yyyy-MM-dd HH:mm:ssXXX", {
-        timeZone,
-    }).replace("Z", "");
+    const formattedExpenseDate = formatDate(expenseDate);
 
     try {
         const existingExpense = await expenseModel.findById(id);
@@ -151,7 +149,7 @@ exports.updateExpense = async (req, res) => {
         if (!existingExpense) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Pengeluaran tidak ditemukan",
+                error: "Expense not found",
             });
         }
 
@@ -196,7 +194,7 @@ exports.deleteExpense = async (req, res) => {
         if (!existingExpense) {
             return res.status(404).json({
                 status: { code: 404, description: "Not Found" },
-                error: "Pengeluaran tidak ditemukan",
+                error: "Expense not found",
             });
         }
 
