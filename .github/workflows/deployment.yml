@@ -48,8 +48,6 @@ jobs:
 
             - name: 🔄️ Run migrations
               run: npx prisma migrate deploy
-              env:
-                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
             - name: 🔍 Check linting
               run: npm run lint
