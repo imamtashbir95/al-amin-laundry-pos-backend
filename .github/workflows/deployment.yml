@@ -5,11 +5,6 @@ on:
         paths:
         - prisma/migrations/** # Only run this workflow when migrations are updated
         branches: [master, develop]
-    pull_request:
-        types: [opened, synchronize, reopened]
-        paths:
-            - prisma/migrations/**
-        branches: [master, develop]
 
 jobs:
     build:
