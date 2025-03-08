@@ -2,8 +2,8 @@ name: Node.js CI
 
 on:
     push:
-        branches: [master, develop]
-    pull_request:
+        paths:
+        - prisma/migrations/** # Only run this workflow when migrations are updated
         branches: [master, develop]
 
 jobs:

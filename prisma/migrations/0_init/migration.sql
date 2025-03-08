@@ -99,3 +99,4 @@ ALTER TABLE "BillDetail" ADD CONSTRAINT "BillDetail_bill_id_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "BillDetail" ADD CONSTRAINT "BillDetail_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
