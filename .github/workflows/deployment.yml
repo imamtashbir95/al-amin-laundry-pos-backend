@@ -54,3 +54,8 @@ jobs:
 
             - name: 🧪 Run the tests
               run: npm run test:ci
+
+            - name: 🔄️ Run migrations for preview and production
+              run: npx prisma migrate deploy
+              env:
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
