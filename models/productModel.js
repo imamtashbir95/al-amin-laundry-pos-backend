@@ -55,7 +55,7 @@ const productModel = {
             data: {
                 is_deleted: true,
             },
-        })
+        });
     },
 };
 

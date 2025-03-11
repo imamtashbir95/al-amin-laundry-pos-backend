@@ -38,7 +38,7 @@ describe("Customer controller", () => {
         expect(response.body.data.name).toBe("Andi Wijaya");
         expect(response.body.data.phoneNumber).toBe("081265270252");
         expect(response.body.data.address).toBe(
-            "Jl. Sudirman No. 10, Jakarta Pusat"
+            "Jl. Sudirman No. 10, Jakarta Pusat",
         );
         expect(response.body.data.createdAt).toBeDefined();
         expect(response.body.data.updatedAt).toBeDefined();
@@ -90,7 +90,7 @@ describe("Customer controller", () => {
         expect(response.body.data.name).toBe("Andi Wijaya 2");
         expect(response.body.data.phoneNumber).toBe("081265270252");
         expect(response.body.data.address).toBe(
-            "Jl. Sudirman No. 10, Jakarta Pusat"
+            "Jl. Sudirman No. 10, Jakarta Pusat",
         );
         expect(response.body.data.createdAt).toBeDefined();
         expect(response.body.data.updatedAt).toBeDefined();

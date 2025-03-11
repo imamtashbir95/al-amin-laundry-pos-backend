@@ -1,36 +1,17 @@
-const generateId = require("../utils/generateId");
-const customerModel = require("../models/customerModel");
-const { getCurrentDateAndTime } = require("../utils/getCurrent");
+const customerService = require("../services/customerService");
 
 // Create a new customer
 exports.createCustomer = async (req, res) => {
-    const { name, phoneNumber, address } = req.body;
-    const id = generateId();
-    const createdAt = getCurrentDateAndTime();
-    const updatedAt = createdAt;
-
     try {
-        const newCustomer = await customerModel.create({
-            id,
+        const { name, phoneNumber, address } = req.body;
+        const result = await customerService.createCustomer(
             name,
             phoneNumber,
             address,
-            createdAt,
-            updatedAt,
-        });
-
-        const formattedCustomer = {
-            id: newCustomer.id,
-            name: newCustomer.name,
-            phoneNumber: newCustomer.phone_number,
-            address: newCustomer.address,
-            createdAt: newCustomer.created_at,
-            updatedAt: newCustomer.updated_at,
-        };
-
+        );
         res.status(201).json({
             status: { code: 201, description: "Ok" },
-            data: formattedCustomer,
+            data: result,
         });
     } catch (error) {
         res.status(500).json({
@@ -43,22 +24,10 @@ exports.createCustomer = async (req, res) => {
 // Get all customers
 exports.getAllCustomers = async (req, res) => {
     try {
-        const customers = await customerModel.findMany();
-
-        const formattedCustomers = customers.map(
-            ({ id, name, phone_number, address, created_at, updated_at }) => ({
-                id,
-                name,
-                phoneNumber: phone_number,
-                address,
-                createdAt: created_at,
-                updatedAt: updated_at,
-            })
-        );
-
+        const result = await customerService.getAllCustomers();
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: formattedCustomers,
+            data: result,
         });
     } catch (error) {
         res.status(500).json({
@@ -70,34 +39,21 @@ exports.getAllCustomers = async (req, res) => {
 
 // Get customer by ID
 exports.getCustomerById = async (req, res) => {
-    const { id } = req.params;
-
     try {
-        const existingCustomer = await customerModel.findById(id);
-
-        if (!existingCustomer) {
-            return res.status(404).json({
-                status: { code: 404, description: "Not Found" },
-                error: "Customer not found",
-            });
-        }
-
-        const formattedCustomer = {
-            id: existingCustomer.id,
-            name: existingCustomer.name,
-            phoneNumber: existingCustomer.phone_number,
-            address: existingCustomer.address,
-            createdAt: existingCustomer.created_at,
-            updatedAt: existingCustomer.updated_at,
-        };
-
+        const { id } = req.params;
+        const result = await customerService.getCustomerById(id);
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: formattedCustomer,
+            data: result,
         });
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("Customer") ? 404 : 500).json({
+            status: {
+                code: error.message.includes("Customer") ? 404 : 500,
+                description: error.message.includes("Customer")
+                    ? "Not Found"
+                    : "Internal Server Error",
+            },
             error: error.message,
         });
     }
@@ -105,45 +61,26 @@ exports.getCustomerById = async (req, res) => {
 
 // Update existing customer
 exports.updateCustomer = async (req, res) => {
-    const { id, name, phoneNumber, address } = req.body;
-    const updatedAt = getCurrentDateAndTime();
-
     try {
-        const existingCustomer = await customerModel.findById(id);
-
-        if (!existingCustomer) {
-            return res.status(404).json({
-                status: { code: 404, description: "Not Found" },
-                error: "Customer not found",
-            });
-        }
-
-        await customerModel.update({
+        const { id, name, phoneNumber, address } = req.body;
+        const result = await customerService.updateCustomer(
             id,
             name,
             phoneNumber,
             address,
-            updatedAt,
-        });
-
-        const updatedCustomer = await customerModel.findById(id);
-
-        const formattedCustomer = {
-            id: updatedCustomer.id,
-            name: updatedCustomer.name,
-            phoneNumber: updatedCustomer.phone_number,
-            address: updatedCustomer.address,
-            createdAt: updatedCustomer.created_at,
-            updatedAt: updatedCustomer.updated_at,
-        };
-
+        );
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: formattedCustomer,
+            data: result,
         });
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("Customer") ? 404 : 500).json({
+            status: {
+                code: error.message.includes("Customer") ? 404 : 500,
+                description: error.message.includes("Customer")
+                    ? "Not Found"
+                    : "Error",
+            },
             error: error.message,
         });
     }
@@ -151,24 +88,18 @@ exports.updateCustomer = async (req, res) => {
 
 // Delete customer by ID
 exports.deleteCustomer = async (req, res) => {
-    const { id } = req.params;
-
     try {
-        const existingCustomer = await customerModel.findById(id);
-
-        if (!existingCustomer) {
-            return res.status(404).json({
-                status: { code: 404, description: "Not Found" },
-                error: "Customer not found",
-            });
-        }
-
-        await customerModel.delete(id);
-
+        const { id } = req.params;
+        await customerService.deleteCustomer(id);
         res.status(204).end();
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("Customer") ? 404 : 500).json({
+            status: {
+                code: error.message.includes("Customer") ? 404 : 500,
+                description: error.message.includes("Customer")
+                    ? "Not Found"
+                    : "Error",
+            },
             error: error.message,
         });
     }

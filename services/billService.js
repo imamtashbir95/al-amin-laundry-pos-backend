@@ -36,7 +36,7 @@ const createBill = async (customerId, billDetails, userId) => {
             billDetails,
             id,
             updatedAt,
-            "create"
+            "create",
         );
 
         return {
@@ -133,7 +133,7 @@ const updateBill = async (id, customerId, billDetails, userId) => {
             billDetails,
             id,
             updatedAt,
-            "update"
+            "update",
         );
 
         return {

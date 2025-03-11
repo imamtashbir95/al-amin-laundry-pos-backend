@@ -17,7 +17,7 @@ app.use(express.json());
 
 const client = twilio(
     process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
+    process.env.TWILIO_AUTH_TOKEN,
 );
 
 app.post("/send-whatsapp", async (req, res) => {
@@ -50,21 +50,21 @@ app.post("/send-whatsapp", async (req, res) => {
 // client.messages
 //     .create({
 //         body: `
-// As-salāmu ʿalaikum wa-raḥmatu -llāhi wa-barakātuhᵘ̄  
-// Selamat datang di *Umi Laundry*! 🧺✨  
+// As-salāmu ʿalaikum wa-raḥmatu -llāhi wa-barakātuhᵘ̄
+// Selamat datang di *Umi Laundry*! 🧺✨
 
-// Perum. Vila Rizki Ilhami, Kel. Bojong Nangka, Kec. Kelapa Dua, Kab. Tangerang, Banten 15810  
-// 📍 Depan Masjid Khoirurroziqin  
-// 🕒 Buka setiap hari, Jam 08.00 - 20.00 WIB  
+// Perum. Vila Rizki Ilhami, Kel. Bojong Nangka, Kec. Kelapa Dua, Kab. Tangerang, Banten 15810
+// 📍 Depan Masjid Khoirurroziqin
+// 🕒 Buka setiap hari, Jam 08.00 - 20.00 WIB
 
-// Mohon pilih layanan yang Anda butuhkan:  
-// 1️⃣ *Cek Status Cucian*  
-// 2️⃣ *Jemput Laundry*  
-// 3️⃣ *Harga & Layanan*  
-// 4️⃣ *Promo & Diskon*  
-// 5️⃣ *Bantuan*  
+// Mohon pilih layanan yang Anda butuhkan:
+// 1️⃣ *Cek Status Cucian*
+// 2️⃣ *Jemput Laundry*
+// 3️⃣ *Harga & Layanan*
+// 4️⃣ *Promo & Diskon*
+// 5️⃣ *Bantuan*
 
-// Silakan ketik angka sesuai pilihan Anda. Kami siap membantu! 🤗  
+// Silakan ketik angka sesuai pilihan Anda. Kami siap membantu! 🤗
 
 // Terima kasih telah mempercayakan cucian Anda kepada *Ummi Laundry*!
 // `,
@@ -94,7 +94,7 @@ const logger = winston.createLogger({
         winston.format.timestamp(),
         winston.format.printf(({ timestamp, level, message }) => {
             return `${timestamp} [${level.toUpperCase()}] ${message}`;
-        })
+        }),
     ),
     transports: [
         new winston.transports.File({ filename: `${process.env.LOG_FILE}` }),

@@ -10,12 +10,12 @@ router.get("/report/out", authenticate, billController.getReportOutBills);
 router.get(
     "/report/not-paid-off",
     authenticate,
-    billController.getReportNotPaidOffBills
+    billController.getReportNotPaidOffBills,
 );
 router.get(
     "/report/not-taken-yet",
     authenticate,
-    billController.getReportNotTakenYetBills
+    billController.getReportNotTakenYetBills,
 );
 router.get("/:id", authenticate, billController.getBillById);
 router.put("/", authenticate, billController.updateBill);

@@ -41,7 +41,7 @@ exports.login = [
             if (!user || !(await bcrypt.compare(password, user.password))) {
                 return res.status(401).json({
                     status: { code: 401, description: "Unauthorized" },
-                    error: "Username atau kata sandi salah",
+                    error: "Username or password is wrong",
                 });
             }
 
@@ -56,7 +56,7 @@ exports.login = [
                 `${process.env.JWT_SECRET}`,
                 {
                     expiresIn: `${process.env.JWT_LIFE_TIME}h`,
-                }
+                },
             );
 
             res.status(201).json({
@@ -101,13 +101,13 @@ exports.register = [
         try {
             const existingUser = await userModel.findByUsernameOrEmail(
                 username,
-                email
+                email,
             );
 
             if (existingUser) {
                 return res.status(409).json({
                     status: { code: 409, description: "Conflict" },
-                    error: "Username atau e-mail sudah ada",
+                    error: "Username or e-mail already exists",
                 });
             }
 

@@ -3,10 +3,7 @@ const userModel = require("../models/userModel");
 const productModel = require("../models/productModel");
 const billDetailsModel = require("../models/billDetailsModel");
 const generateId = require("../utils/generateId");
-
-const formatDate = (date) => {
-    return new Date(date);
-};
+const { formatDate } = require("./formatDate");
 
 const enrichBillDetails = async (details, billId, updatedAt, operation) => {
     if (!["create", "update"].includes(operation))
@@ -36,13 +33,11 @@ const enrichBillDetails = async (details, billId, updatedAt, operation) => {
             let processedBillDetails;
             if (operation === "create") {
                 (billDetailsData.createdAt = updatedAt),
-                    (processedBillDetails = await billDetailsModel.create(
-                        billDetailsData
-                    ));
+                    (processedBillDetails =
+                        await billDetailsModel.create(billDetailsData));
             } else if (operation === "update") {
-                processedBillDetails = await billDetailsModel.update(
-                    billDetailsData
-                );
+                processedBillDetails =
+                    await billDetailsModel.update(billDetailsData);
             }
 
             return {
@@ -65,7 +60,7 @@ const enrichBillDetails = async (details, billId, updatedAt, operation) => {
                 createdAt: processedBillDetails.created_at,
                 updatedAt: processedBillDetails.updated_at,
             };
-        })
+        }),
     );
 };
 

@@ -69,7 +69,7 @@ describe("Bill controller", () => {
         expect(response.body.data.billDetails[0].qty).toBe(3);
         expect(response.body.data.billDetails[0].price).toBeDefined();
         expect(response.body.data.billDetails[0].paymentStatus).toBe(
-            "sudah-dibayar"
+            "sudah-dibayar",
         );
         expect(response.body.data.billDetails[0].status).toBe("baru");
         expect(response.body.data.billDetails[0].finishDate).toBeDefined();
@@ -273,7 +273,7 @@ describe("Bill controller", () => {
         expect(response.body.data.billDetails[0].qty).toBe(3);
         expect(response.body.data.billDetails[0].price).toBeDefined();
         expect(response.body.data.billDetails[0].paymentStatus).toBe(
-            "sudah-dibayar"
+            "sudah-dibayar",
         );
         expect(response.body.data.billDetails[0].status).toBe("proses");
         expect(response.body.data.billDetails[0].finishDate).toBeDefined();
@@ -282,7 +282,7 @@ describe("Bill controller", () => {
         console.log("PUT /bills", response.body.data);
     });
 
-    test("DELETE /bills/:id should delete bill", async() => {
+    test("DELETE /bills/:id should delete bill", async () => {
         const { id } = await prisma.bill.findFirst();
 
         const response = await request(app)

@@ -8,7 +8,7 @@ exports.createBill = async (req, res) => {
         const result = await billService.createBill(
             customerId,
             billDetails,
-            userId
+            userId,
         );
         res.status(201).json({
             status: { code: 201, description: "Ok" },
@@ -132,7 +132,7 @@ exports.updateBill = async (req, res) => {
             id,
             customerId,
             billDetails,
-            userId
+            userId,
         );
         res.status(200).json({
             status: { code: 200, description: "Ok" },
