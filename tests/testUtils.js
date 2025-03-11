@@ -31,7 +31,7 @@ const createTestProduct = async (token) => {
             type: "kg",
         })
         .set("Authorization", `Bearer ${token}`);
-}
+};
 
 const createTestCustomer = async (token) => {
     return await request(app)
@@ -42,11 +42,11 @@ const createTestCustomer = async (token) => {
             address: "Jl. Sudirman No. 10, Jakarta Pusat",
         })
         .set("Authorization", `Bearer ${token}`);
-}
+};
 
 module.exports = {
     registerTestUser,
     loginTestUser,
     createTestProduct,
-    createTestCustomer
+    createTestCustomer,
 };

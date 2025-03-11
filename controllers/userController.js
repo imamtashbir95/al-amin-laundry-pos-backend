@@ -1,57 +1,28 @@
-const bcrypt = require("bcrypt");
-const generateId = require("../utils/generateId");
-const userModel = require("../models/userModel");
-const { getCurrentDateAndTime } = require("../utils/getCurrent");
+const userService = require("../services/userService");
 
 // Register a new user
 exports.registerUser = async (req, res) => {
-    const { name, email, username, password, role } = req.body;
-    const id = generateId();
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const createdAt = getCurrentDateAndTime();
-    const updatedAt = createdAt;
-
     try {
-        const existingUser = await userModel.findByUsernameOrEmail(
-            username,
-            email
-        );
-
-        if (existingUser) {
-            return res.status(409).json({
-                status: { code: 409, description: "Conflict" },
-                error: "Username atau e-mail sudah ada",
-            });
-        }
-
-        const newUser = await userModel.register({
-            id,
+        const { name, email, username, password, role } = req.body;
+        const result = await userService.registerUser(
             name,
             email,
             username,
-            hashedPassword,
+            password,
             role,
-            createdAt,
-            updatedAt,
-        });
-
-        const formattedUser = {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            username: newUser.username,
-            role: newUser.role,
-            createdAt: newUser.created_at,
-            updatedAt: newUser.updated_at,
-        };
-
+        );
         res.status(201).json({
             status: { code: 201, description: "Ok" },
-            data: formattedUser,
+            data: result,
         });
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("Username") ? 409 : 500).json({
+            status: {
+                code: error.message.includes("Username") ? 409 : 500,
+                description: error.message.includes("Username")
+                    ? "Conflict"
+                    : "Error",
+            },
             error: error.message,
         });
     }
@@ -60,23 +31,10 @@ exports.registerUser = async (req, res) => {
 // Get all users
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await userModel.findMany();
-
-        const formattedUsers = users.map(
-            ({ id, name, email, username, role, created_at, updated_at }) => ({
-                id,
-                name,
-                email,
-                username,
-                role,
-                createdAt: created_at,
-                updatedAt: updated_at,
-            })
-        );
-
+        const result = await userService.getAllUsers();
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: formattedUsers,
+            data: result,
         });
     } catch (error) {
         res.status(500).json({
@@ -88,35 +46,21 @@ exports.getAllUsers = async (req, res) => {
 
 // Get user by ID
 exports.getUserById = async (req, res) => {
-    const { id } = req.params;
-
     try {
-        const existingUser = await userModel.findById(id);
-
-        if (!existingUser) {
-            return res.status(404).json({
-                status: { code: 404, description: "Not Found" },
-                error: "Employee not found",
-            });
-        }
-
-        const formattedUser = {
-            id: existingUser.id,
-            name: existingUser.name,
-            email: existingUser.email,
-            username: existingUser.username,
-            role: existingUser.role,
-            createdAt: existingUser.created_at,
-            updatedAt: existingUser.updated_at,
-        };
-
+        const { id } = req.params;
+        const result = await userService.getUserById(id);
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: formattedUser,
+            data: result,
         });
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("User") ? 404 : 500).json({
+            status: {
+                code: error.message.includes("User") ? 404 : 500,
+                description: error.message.includes("User")
+                    ? "Not Found"
+                    : "Error",
+            },
             error: error.message,
         });
     }
@@ -124,49 +68,28 @@ exports.getUserById = async (req, res) => {
 
 // Update existing user
 exports.updateUser = async (req, res) => {
-    const { id, name, email, username, password, role } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const updatedAt = getCurrentDateAndTime();
-
     try {
-        const existingUser = await userModel.findById(id);
-
-        if (!existingUser) {
-            return res.status(404).json({
-                status: { code: 404, description: "Not Found" },
-                error: "Employee not found",
-            });
-        }
-
-        await userModel.update({
+        const { id, name, email, username, password, role } = req.body;
+        const result = await userService.updateUser(
             id,
             name,
             email,
             username,
-            hashedPassword,
+            password,
             role,
-            updatedAt,
-        });
-
-        const updatedUser = await userModel.findById(id);
-
-        const formattedUser = {
-            id: updatedUser.id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            username: updatedUser.username,
-            role: updatedUser.role,
-            createdAt: updatedUser.created_at,
-            updatedAt: updatedUser.updated_at,
-        };
-
+        );
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: formattedUser,
+            data: result,
         });
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("User") ? 404 : 500).json({
+            status: {
+                code: error.message.includes("User") ? 404 : 500,
+                description: error.message.includes("Usern")
+                    ? "Not Found"
+                    : "Error",
+            },
             error: error.message,
         });
     }
@@ -174,24 +97,18 @@ exports.updateUser = async (req, res) => {
 
 // Delete user by ID
 exports.deleteUser = async (req, res) => {
-    const { id } = req.params;
-
     try {
-        const existingUser = await userModel.findById(id);
-
-        if (!existingUser) {
-            return res.status(404).json({
-                status: { code: 404, description: "Not Found" },
-                error: "Employee not found",
-            });
-        }
-
-        await userModel.delete(id);
-
+        const { id } = req.params;
+        await userService.deleteUser(id);
         res.status(204).end();
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("User") ? 404 : 500).json({
+            status: {
+                code: error.message.includes("User") ? 404 : 500,
+                description: error.message.includes("User")
+                    ? "Not Found"
+                    : "Error",
+            },
             error: error.message,
         });
     }
@@ -200,27 +117,19 @@ exports.deleteUser = async (req, res) => {
 // Get all users except admin
 exports.getAllUsersExceptAdmin = async (req, res) => {
     try {
-        const users = await userModel.findManyExceptAdmin();
-
-        const formattedUsers = users.map(
-            ({ id, name, email, username, role, created_at, updated_at }) => ({
-                id,
-                name,
-                email,
-                username,
-                role,
-                createdAt: created_at,
-                updatedAt: updated_at,
-            })
-        );
-
+        const result = await userService.getAllUsersExceptAdmin();
         res.status(200).json({
             status: { code: 200, description: "Ok" },
-            data: formattedUsers,
+            data: result,
         });
     } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
+        res.status(error.message.includes("User") ? 404 : 500).json({
+            status: {
+                code: error.message.includes("User") ? 404 : 500,
+                description: error.message.includes("Username")
+                    ? "Not Found"
+                    : "Error",
+            },
             error: error.message,
         });
     }
