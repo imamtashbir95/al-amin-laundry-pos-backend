@@ -2,8 +2,13 @@ const generateId = require("../utils/generateId");
 const customerModel = require("../models/customerModel");
 const { getCurrentDateAndTime } = require("../utils/getCurrent");
 const { formatCustomer } = require("../helpers/customerHelper");
+const { redisClient } = require("../config/redis");
+const CACHE_TTL = 3600; // 1 hour
 
 const createCustomer = async (name, phoneNumber, address) => {
+    // Delete the cache if data changed
+    await redisClient.del("all_customers");
+    
     const id = generateId();
     const createdAt = getCurrentDateAndTime();
     const updatedAt = createdAt;
@@ -21,23 +26,57 @@ const createCustomer = async (name, phoneNumber, address) => {
 };
 
 const getAllCustomers = async () => {
-    const customers = await customerModel.findMany();
+    const cacheKey = "all_customers";
 
-    return customers.map(formatCustomer);
+    // Check if the data is already in the cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+        console.log("📦 [Cache Hit] GET all customers");
+        return JSON.parse(cachedData);
+    }
+    console.log("❌ [Cache Miss] GET all customers");
+
+    // If not in the cache, fetch the data from the database
+    const customers = await customerModel.findMany();
+    const formattedCustomers = customers.map(formatCustomer);
+
+    // Store the data in the cache
+    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(formattedCustomers));
+
+    return formattedCustomers;
 };
 
 const getCustomerById = async (id) => {
+    const cacheKey = `customer_${id}`;
+
+    // Check if the data is already in the cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+        console.log(`📦 [Cache Hit] GET customer ${id}`);
+        return JSON.parse(cachedData);
+    }
+    console.log(`❌ [Cache Miss] GET customer ${id}`);
+
+    // If not in the cache, fetch the data from the database
     const existingCustomer = await customerModel.findById(id);
-
     if (!existingCustomer) throw new Error("Customer not found");
+    const formattedCustomer = formatCustomer(existingCustomer);
 
-    return formatCustomer(existingCustomer);
+    // Store the data in the cache
+    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(formattedCustomer));
+
+    return formattedCustomer;
 };
 
 const updateCustomer = async (id, name, phoneNumber, address) => {
     const updatedAt = getCurrentDateAndTime();
-    const existingCustomer = await customerModel.findById(id);
 
+    // Clear related cache
+    // Add cache invalidation for write operations
+    await redisClient.del("all_customers");
+    await redisClient.del(`customer_${id}`);
+
+    const existingCustomer = await customerModel.findById(id);
     if (!existingCustomer) throw new Error("Customer not found");
 
     await customerModel.update({
@@ -54,8 +93,11 @@ const updateCustomer = async (id, name, phoneNumber, address) => {
 };
 
 const deleteCustomer = async (id) => {
-    const existingCustomer = await customerModel.findById(id);
+    // Delete the cache if data changed
+    await redisClient.del("all_customers");
+    await redisClient.del(`customer_${id}`);
 
+    const existingCustomer = await customerModel.findById(id);
     if (!existingCustomer) throw new Error("Customer not found");
 
     await customerModel.delete(id);

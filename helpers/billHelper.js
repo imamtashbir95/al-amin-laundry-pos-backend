@@ -6,8 +6,7 @@ const generateId = require("../utils/generateId");
 const { formatDate } = require("./formatDate");
 
 const enrichBillDetails = async (details, billId, updatedAt, operation) => {
-    if (!["create", "update"].includes(operation))
-        throw new Error("Invalid operation");
+    if (!["create", "update"].includes(operation)) throw new Error("Invalid operation");
 
     return Promise.all(
         details.map(async (detail) => {
@@ -33,11 +32,9 @@ const enrichBillDetails = async (details, billId, updatedAt, operation) => {
             let processedBillDetails;
             if (operation === "create") {
                 (billDetailsData.createdAt = updatedAt),
-                    (processedBillDetails =
-                        await billDetailsModel.create(billDetailsData));
+                    (processedBillDetails = await billDetailsModel.create(billDetailsData));
             } else if (operation === "update") {
-                processedBillDetails =
-                    await billDetailsModel.update(billDetailsData);
+                processedBillDetails = await billDetailsModel.update(billDetailsData);
             }
 
             return {

@@ -69,9 +69,7 @@ describe("User controller", () => {
     });
 
     test("GET /users should get all users", async () => {
-        const response = await request(app)
-            .get("/users")
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/users").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -80,17 +78,13 @@ describe("User controller", () => {
     test("GET /users/:id should get user by ID", async () => {
         const { id } = await prisma.user.findFirst();
 
-        const response = await request(app)
-            .get(`/users/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/users/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
     });
 
     test("GET /users/:id should get user by ID but not found", async () => {
-        const response = await request(app)
-            .get(`/users/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/users/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
@@ -139,17 +133,13 @@ describe("User controller", () => {
             },
         });
 
-        const response = await request(app)
-            .delete(`/users/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/users/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });
 
     test("DELETE /users/:id should delete user by ID but not found", async () => {
-        const response = await request(app)
-            .delete(`/users/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/users/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();

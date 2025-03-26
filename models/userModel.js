@@ -2,16 +2,7 @@ const prisma = require("../config/db");
 
 const userModel = {
     register: async (data) => {
-        const {
-            id,
-            name,
-            email,
-            username,
-            hashedPassword,
-            role,
-            createdAt,
-            updatedAt,
-        } = data;
+        const { id, name, email, username, hashedPassword, role, createdAt, updatedAt } = data;
         return await prisma.user.create({
             data: {
                 id,
@@ -63,8 +54,7 @@ const userModel = {
     },
 
     update: async (data) => {
-        const { id, name, email, username, hashedPassword, role, updatedAt } =
-            data;
+        const { id, name, email, username, hashedPassword, role, updatedAt } = data;
         return await prisma.user.update({
             where: { id, is_deleted: false },
             data: {

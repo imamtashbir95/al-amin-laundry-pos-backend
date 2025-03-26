@@ -1,32 +1,29 @@
 const userService = require("../services/userService");
+const { validateUser, handleValidationErrors, validateUserWithId } = require("../validators/userValidator");
 
 // Register a new user
-exports.registerUser = async (req, res) => {
-    try {
-        const { name, email, username, password, role } = req.body;
-        const result = await userService.registerUser(
-            name,
-            email,
-            username,
-            password,
-            role,
-        );
-        res.status(201).json({
-            status: { code: 201, description: "Ok" },
-            data: result,
-        });
-    } catch (error) {
-        res.status(error.message.includes("Username") ? 409 : 500).json({
-            status: {
-                code: error.message.includes("Username") ? 409 : 500,
-                description: error.message.includes("Username")
-                    ? "Conflict"
-                    : "Error",
-            },
-            error: error.message,
-        });
-    }
-};
+exports.registerUser = [
+    ...validateUser(),
+    handleValidationErrors,
+    async (req, res) => {
+        try {
+            const { name, email, username, password, role } = req.body;
+            const result = await userService.registerUser(name, email, username, password, role);
+            res.status(201).json({
+                status: { code: 201, description: "Ok" },
+                data: result,
+            });
+        } catch (error) {
+            res.status(error.message.includes("Username") ? 409 : 500).json({
+                status: {
+                    code: error.message.includes("Username") ? 409 : 500,
+                    description: error.message.includes("Username") ? "Conflict" : "Error",
+                },
+                error: error.message,
+            });
+        }
+    },
+];
 
 // Get all users
 exports.getAllUsers = async (req, res) => {
@@ -57,9 +54,7 @@ exports.getUserById = async (req, res) => {
         res.status(error.message.includes("User") ? 404 : 500).json({
             status: {
                 code: error.message.includes("User") ? 404 : 500,
-                description: error.message.includes("User")
-                    ? "Not Found"
-                    : "Error",
+                description: error.message.includes("User") ? "Not Found" : "Error",
             },
             error: error.message,
         });
@@ -67,33 +62,28 @@ exports.getUserById = async (req, res) => {
 };
 
 // Update existing user
-exports.updateUser = async (req, res) => {
-    try {
-        const { id, name, email, username, password, role } = req.body;
-        const result = await userService.updateUser(
-            id,
-            name,
-            email,
-            username,
-            password,
-            role,
-        );
-        res.status(200).json({
-            status: { code: 200, description: "Ok" },
-            data: result,
-        });
-    } catch (error) {
-        res.status(error.message.includes("User") ? 404 : 500).json({
-            status: {
-                code: error.message.includes("User") ? 404 : 500,
-                description: error.message.includes("Usern")
-                    ? "Not Found"
-                    : "Error",
-            },
-            error: error.message,
-        });
-    }
-};
+exports.updateUser = [
+    ...validateUserWithId(),
+    handleValidationErrors,
+    async (req, res) => {
+        try {
+            const { id, name, email, username, password, role } = req.body;
+            const result = await userService.updateUser(id, name, email, username, password, role);
+            res.status(200).json({
+                status: { code: 200, description: "Ok" },
+                data: result,
+            });
+        } catch (error) {
+            res.status(error.message.includes("User") ? 404 : 500).json({
+                status: {
+                    code: error.message.includes("User") ? 404 : 500,
+                    description: error.message.includes("Usern") ? "Not Found" : "Error",
+                },
+                error: error.message,
+            });
+        }
+    },
+];
 
 // Delete user by ID
 exports.deleteUser = async (req, res) => {
@@ -105,9 +95,7 @@ exports.deleteUser = async (req, res) => {
         res.status(error.message.includes("User") ? 404 : 500).json({
             status: {
                 code: error.message.includes("User") ? 404 : 500,
-                description: error.message.includes("User")
-                    ? "Not Found"
-                    : "Error",
+                description: error.message.includes("User") ? "Not Found" : "Error",
             },
             error: error.message,
         });
@@ -126,9 +114,7 @@ exports.getAllUsersExceptAdmin = async (req, res) => {
         res.status(error.message.includes("User") ? 404 : 500).json({
             status: {
                 code: error.message.includes("User") ? 404 : 500,
-                description: error.message.includes("Username")
-                    ? "Not Found"
-                    : "Error",
+                description: error.message.includes("Username") ? "Not Found" : "Error",
             },
             error: error.message,
         });

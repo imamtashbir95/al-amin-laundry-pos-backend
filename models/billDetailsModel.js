@@ -61,17 +61,7 @@ const billDetailsModel = {
     },
 
     update: async (data) => {
-        const {
-            id,
-            invoiceId,
-            productId,
-            qty,
-            price,
-            paymentStatus,
-            status,
-            finishDate,
-            updatedAt,
-        } = data;
+        const { id, invoiceId, productId, qty, price, paymentStatus, status, finishDate, updatedAt } = data;
         return await prisma.billDetail.update({
             where: { id },
             data: {

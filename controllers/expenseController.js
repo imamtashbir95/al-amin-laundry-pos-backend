@@ -4,11 +4,7 @@ const expenseService = require("../services/expenseService");
 exports.createExpense = async (req, res) => {
     try {
         const { name, price, expenseDate } = req.body;
-        const result = await expenseService.createExpense(
-            name,
-            price,
-            expenseDate,
-        );
+        const result = await expenseService.createExpense(name, price, expenseDate);
         res.status(201).json({
             status: { code: 201, description: "Ok" },
             data: result,
@@ -67,9 +63,7 @@ exports.getExpenseById = async (req, res) => {
         res.status(error.message.includes("Expense") ? 404 : 500).json({
             status: {
                 code: error.message.includes("Expense") ? 404 : 500,
-                description: error.message.includes("Expense")
-                    ? "Not Found"
-                    : "Error",
+                description: error.message.includes("Expense") ? "Not Found" : "Error",
             },
             error: error.message,
         });
@@ -80,12 +74,7 @@ exports.getExpenseById = async (req, res) => {
 exports.updateExpense = async (req, res) => {
     try {
         const { id, name, price, expenseDate } = req.body;
-        const result = await expenseService.updateExpense(
-            id,
-            name,
-            price,
-            expenseDate,
-        );
+        const result = await expenseService.updateExpense(id, name, price, expenseDate);
         res.status(200).json({
             status: { code: 200, description: "Ok" },
             data: result,
@@ -94,9 +83,7 @@ exports.updateExpense = async (req, res) => {
         res.status(error.message.includes("Expense") ? 404 : 500).json({
             status: {
                 code: error.message.includes("Expense") ? 404 : 500,
-                description: error.message.includes("Expense")
-                    ? "Not Found"
-                    : "Error",
+                description: error.message.includes("Expense") ? "Not Found" : "Error",
             },
             error: error.message,
         });
@@ -113,9 +100,7 @@ exports.deleteExpense = async (req, res) => {
         res.status(error.message.includes("Expense") ? 404 : 500).json({
             status: {
                 code: error.message.includes("Expense") ? 404 : 500,
-                description: error.message.includes("Expense")
-                    ? "Not Found"
-                    : "Error",
+                description: error.message.includes("Expense") ? "Not Found" : "Error",
             },
             error: error.message,
         });

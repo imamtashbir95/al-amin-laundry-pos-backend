@@ -37,17 +37,13 @@ describe("Customer controller", () => {
         expect(response.body.data.id).toBeDefined();
         expect(response.body.data.name).toBe("Andi Wijaya");
         expect(response.body.data.phoneNumber).toBe("081265270252");
-        expect(response.body.data.address).toBe(
-            "Jl. Sudirman No. 10, Jakarta Pusat",
-        );
+        expect(response.body.data.address).toBe("Jl. Sudirman No. 10, Jakarta Pusat");
         expect(response.body.data.createdAt).toBeDefined();
         expect(response.body.data.updatedAt).toBeDefined();
     });
 
     test("GET /customers should get all customers", async () => {
-        const response = await request(app)
-            .get("/customers")
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/customers").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -56,17 +52,13 @@ describe("Customer controller", () => {
     test("GET /customers/:id should get customer by ID", async () => {
         const { id } = await prisma.customer.findFirst();
 
-        const response = await request(app)
-            .get(`/customers/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/customers/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
     });
 
     test("GET /customers/:id should get customer by ID but not found", async () => {
-        const response = await request(app)
-            .get(`/customers/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/customers/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
@@ -89,9 +81,7 @@ describe("Customer controller", () => {
         expect(response.body.data.id).toBeDefined();
         expect(response.body.data.name).toBe("Andi Wijaya 2");
         expect(response.body.data.phoneNumber).toBe("081265270252");
-        expect(response.body.data.address).toBe(
-            "Jl. Sudirman No. 10, Jakarta Pusat",
-        );
+        expect(response.body.data.address).toBe("Jl. Sudirman No. 10, Jakarta Pusat");
         expect(response.body.data.createdAt).toBeDefined();
         expect(response.body.data.updatedAt).toBeDefined();
     });
@@ -99,17 +89,13 @@ describe("Customer controller", () => {
     test("DELETE /customers should delete customer by ID", async () => {
         const { id } = await prisma.customer.findFirst();
 
-        const response = await request(app)
-            .delete(`/customers/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/customers/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });
 
     test("DELETE /customers/:id should delete customer by ID but not found", async () => {
-        const response = await request(app)
-            .delete(`/customers/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/customers/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();

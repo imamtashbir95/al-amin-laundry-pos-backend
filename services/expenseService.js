@@ -3,8 +3,13 @@ const expenseModel = require("../models/expenseModel");
 const { getCurrentDateAndTime } = require("../utils/getCurrent");
 const { formatExpense } = require("../helpers/expenseHelper");
 const { formatDate } = require("../helpers/formatDate");
+const { redisClient } = require("../config/redis");
+const CACHE_TTL = 3600; // 1 hour
 
 const createExpense = async (name, price, expenseDate) => {
+    // Delete the cache if data changed
+    await redisClient.del("all_expenses");
+
     const id = generateId();
     const createdAt = getCurrentDateAndTime();
     const updatedAt = createdAt;
@@ -23,30 +28,79 @@ const createExpense = async (name, price, expenseDate) => {
 };
 
 const getAllExpenses = async () => {
-    const expenses = await expenseModel.findMany();
+    const cacheKey = "all_expenses";
 
-    return expenses.map(formatExpense);
+    // Check if the data is already in the cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+        console.log("📦 [Cache Hit] GET all expenses");
+        return JSON.parse(cachedData);
+    }
+    console.log("❌ [Cache Miss] GET all expenses");
+
+    // If not in the cache, fetch the data from the database
+    const expenses = await expenseModel.findMany();
+    const formattedExpenses = expenses.map(formatExpense);
+
+    // Store the data in the cache
+    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(formattedExpenses));
+
+    return formattedExpenses;
 };
 
 const getDateExpenses = async (date) => {
-    const expenses = await expenseModel.findManyByDate(date);
+    const cacheKey = `date_expenses_${date}`;
 
-    return expenses.map(formatExpense);
+    // Check if the data is already in the cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+        console.log(`📦 [Cache Hit] GET date expenses ${date}`);
+        return JSON.parse(cachedData);
+    }
+    console.log(`❌ [Cache Miss] GET date expenses ${date}`);
+
+    // If not in the cache, fetch the data from the database
+    const expenses = await expenseModel.findManyByDate(date);
+    const formattedExpenses = expenses.map(formatExpense);
+
+    // Store the data in the cache
+    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(formattedExpenses));
+
+    return formattedExpenses;
 };
 
 const getExpenseById = async (id) => {
+    const cacheKey = `expense_${id}`;
+
+    // Check if the data is already in the cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+        console.log(`📦 [Cache Hit] GET expense ${id}`);
+        return JSON.parse(cachedData);
+    }
+    console.log(`❌ [Cache Miss] GET expense ${id}`);
+
+    // If not in the cache, fetch the data from the database
     const existingExpense = await expenseModel.findById(id);
-
     if (!existingExpense) throw new Error("Expense not found");
+    const formattedExpense = formatExpense(existingExpense);
 
-    return formatExpense(existingExpense);
+    // Store the data in the cache
+    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(formattedExpense));
+
+    return formattedExpense;
 };
 
 const updateExpense = async (id, name, price, expenseDate) => {
     const updatedAt = getCurrentDateAndTime();
     const formattedExpenseDate = formatDate(expenseDate);
-    const existingExpense = await expenseModel.findById(id);
 
+    // Clear related cache
+    // Add cache invalidation for write operations
+    await redisClient.del("all_expenses");
+    await redisClient.del(`expense_${id}`);
+
+    const existingExpense = await expenseModel.findById(id);
     if (!existingExpense) throw new Error("Expense not found");
 
     await expenseModel.update({
@@ -63,8 +117,11 @@ const updateExpense = async (id, name, price, expenseDate) => {
 };
 
 const deleteExpense = async (id) => {
-    const existingExpense = await expenseModel.findById(id);
+    // Delete the cache if data changed
+    await redisClient.del("all_expenses");
+    await redisClient.del(`expense_${id}`);
 
+    const existingExpense = await expenseModel.findById(id);
     if (!existingExpense) throw new Error("Expense not found");
 
     await expenseModel.delete(id);

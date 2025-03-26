@@ -2,12 +2,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
 const generateId = require("../utils/generateId");
-const {
-    getCurrentDateAndTime,
-    getCurrentTimestampUnix,
-} = require("../utils/getCurrent");
+const { getCurrentDateAndTime, getCurrentTimestampUnix } = require("../utils/getCurrent");
 const userModel = require("../models/userModel");
 const prisma = require("../config/db");
+const { validateUser } = require("../validators/userValidator");
+const { handleValidationErrors } = require("../validators/productValidator");
 
 exports.login = [
     body("username").notEmpty().withMessage("Username is required"),
@@ -73,25 +72,9 @@ exports.login = [
 ];
 
 exports.register = [
-    body("name").notEmpty().withMessage("Name is required"),
-    body("email").isEmail().withMessage("Email is invalid"),
-    body("username").notEmpty().withMessage("Username is required"),
-    body("password")
-        .isLength({ min: 8 })
-        .withMessage("Password must be at least 8 characters long"),
-    body("role")
-        .isIn(["admin", "employee"])
-        .withMessage("Role must be either admin or employee"),
-
+    ...validateUser(),
+    handleValidationErrors,
     async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                status: { code: 400, description: "Bad Request" },
-                errors: errors.array(),
-            });
-        }
-
         const { name, email, username, password, role } = req.body;
         const id = generateId();
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -99,10 +82,7 @@ exports.register = [
         const updatedAt = createdAt;
 
         try {
-            const existingUser = await userModel.findByUsernameOrEmail(
-                username,
-                email,
-            );
+            const existingUser = await userModel.findByUsernameOrEmail(username, email);
 
             if (existingUser) {
                 return res.status(409).json({
