@@ -8,5 +8,5 @@ const formatExpense = (expense) => ({
 });
 
 module.exports = {
-    formatExpense
+    formatExpense,
 };

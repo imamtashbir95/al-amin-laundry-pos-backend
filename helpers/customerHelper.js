@@ -9,4 +9,4 @@ const formatCustomer = (customer) => ({
 
 module.exports = {
     formatCustomer,
-}
+};

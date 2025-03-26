@@ -44,9 +44,7 @@ describe("Expense controller", () => {
     });
 
     test("GET /expenses should get all expenses", async () => {
-        const response = await request(app)
-            .get("/customers")
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/customers").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -55,9 +53,7 @@ describe("Expense controller", () => {
     test("GET /expenses should get expenses by date", async () => {
         const { created_at: date } = await prisma.expense.findFirst();
 
-        const response = await request(app)
-            .get(`/expenses/date?date=${date}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/expenses/date?date=${date}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -66,17 +62,13 @@ describe("Expense controller", () => {
     test("GET /expenses/:id should get expense by ID", async () => {
         const { id } = await prisma.expense.findFirst();
 
-        const response = await request(app)
-            .get(`/expenses/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/expenses/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
     });
 
     test("GET /expenses/:id should get customer by ID but not found", async () => {
-        const response = await request(app)
-            .get(`/expenses/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/expenses/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
@@ -108,17 +100,13 @@ describe("Expense controller", () => {
     test("DELETE /expenses should delete expense by ID", async () => {
         const { id } = await prisma.expense.findFirst();
 
-        const response = await request(app)
-            .delete(`/expenses/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/expenses/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });
 
     test("DELETE /expenses/:id should delete expense by ID but not found", async () => {
-        const response = await request(app)
-            .delete(`/expenses/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/expenses/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();

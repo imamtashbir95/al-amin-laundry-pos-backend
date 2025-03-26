@@ -8,5 +8,5 @@ const formatProduct = (product) => ({
 });
 
 module.exports = {
-    formatProduct
-}
+    formatProduct,
+};

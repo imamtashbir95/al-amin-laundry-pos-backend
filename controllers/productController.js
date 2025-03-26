@@ -1,21 +1,26 @@
 const productService = require("../services/productService");
+const { validateProduct, handleValidationErrors, validateProductWithId } = require("../validators/productValidator");
 
 // Create a new product
-exports.createProduct = async (req, res) => {
-    try {
-        const { name, price, type } = req.body;
-        const result = await productService.createProduct(name, price, type);
-        res.status(201).json({
-            status: { code: 201, description: "Ok" },
-            data: result,
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
-            error: error.message,
-        });
-    }
-};
+exports.createProduct = [
+    ...validateProduct(),
+    handleValidationErrors,
+    async (req, res) => {
+        try {
+            const { name, price, type } = req.body;
+            const result = await productService.createProduct(name, price, type);
+            res.status(201).json({
+                status: { code: 201, description: "Ok" },
+                data: result,
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: { code: 500, description: "Internal Server Error" },
+                error: error.message,
+            });
+        }
+    },
+];
 
 // Get all products
 exports.getAllProducts = async (req, res) => {
@@ -46,9 +51,7 @@ exports.getProductById = async (req, res) => {
         res.status(error.message.includes("Product") ? 404 : 500).json({
             status: {
                 code: error.message.includes("Product") ? 404 : 500,
-                description: error.message.includes("Product")
-                    ? "Not Found"
-                    : "Internal Server Error",
+                description: error.message.includes("Product") ? "Not Found" : "Internal Server Error",
             },
             error: error.message,
         });
@@ -56,31 +59,28 @@ exports.getProductById = async (req, res) => {
 };
 
 // Update existing product
-exports.updateProduct = async (req, res) => {
-    try {
-        const { id, name, price, type } = req.body;
-        const result = await productService.updateProduct(
-            id,
-            name,
-            price,
-            type,
-        );
-        res.status(200).json({
-            status: { code: 200, description: "Ok" },
-            data: result,
-        });
-    } catch (error) {
-        res.status(error.message.includes("Product") ? 404 : 500).json({
-            status: {
-                code: error.message.includes("Product") ? 404 : 500,
-                description: error.message.includes("Product")
-                    ? "Not Found"
-                    : "Internal Server Error",
-            },
-            error: error.message,
-        });
-    }
-};
+exports.updateProduct = [
+    ...validateProductWithId(),
+    handleValidationErrors,
+    async (req, res) => {
+        try {
+            const { id, name, price, type } = req.body;
+            const result = await productService.updateProduct(id, name, price, type);
+            res.status(200).json({
+                status: { code: 200, description: "Ok" },
+                data: result,
+            });
+        } catch (error) {
+            res.status(error.message.includes("Product") ? 404 : 500).json({
+                status: {
+                    code: error.message.includes("Product") ? 404 : 500,
+                    description: error.message.includes("Product") ? "Not Found" : "Internal Server Error",
+                },
+                error: error.message,
+            });
+        }
+    },
+];
 
 // Delete product by ID
 exports.deleteProduct = async (req, res) => {
@@ -92,9 +92,7 @@ exports.deleteProduct = async (req, res) => {
         res.status(error.message.includes("Product") ? 404 : 500).json({
             status: {
                 code: error.message.includes("Product") ? 404 : 500,
-                description: error.message.includes("Product")
-                    ? "Not Found"
-                    : "Internal Server Error",
+                description: error.message.includes("Product") ? "Not Found" : "Internal Server Error",
             },
             error: error.message,
         });

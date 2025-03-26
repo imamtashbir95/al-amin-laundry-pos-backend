@@ -15,10 +15,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const client = twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN,
-);
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 app.post("/send-whatsapp", async (req, res) => {
     const { phoneNumber, message } = req.body;
@@ -96,9 +93,7 @@ const logger = winston.createLogger({
             return `${timestamp} [${level.toUpperCase()}] ${message}`;
         }),
     ),
-    transports: [
-        new winston.transports.File({ filename: `${process.env.LOG_FILE}` }),
-    ],
+    transports: [new winston.transports.File({ filename: `${process.env.LOG_FILE}` })],
 });
 
 module.exports = app;

@@ -1,26 +1,27 @@
 const billService = require("../services/billService");
+const { validateBill, handleValidationErrors, validateBillWithId } = require("../validators/billValidator");
 
 // Create a new bill
-exports.createBill = async (req, res) => {
-    try {
-        const { customerId, billDetails } = req.body;
-        const userId = req.user.id;
-        const result = await billService.createBill(
-            customerId,
-            billDetails,
-            userId,
-        );
-        res.status(201).json({
-            status: { code: 201, description: "Ok" },
-            data: result,
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
-            error: error.message,
-        });
-    }
-};
+exports.createBill = [
+    ...validateBill(),
+    handleValidationErrors,
+    async (req, res) => {
+        try {
+            const { customerId, billDetails } = req.body;
+            const userId = req.user.id;
+            const result = await billService.createBill(customerId, billDetails, userId);
+            res.status(201).json({
+                status: { code: 201, description: "Ok" },
+                data: result,
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: { code: 500, description: "Internal Server Error" },
+                error: error.message,
+            });
+        }
+    },
+];
 
 // Get all bills
 exports.getAllBills = async (req, res) => {
@@ -124,27 +125,26 @@ exports.getBillById = async (req, res) => {
 };
 
 // Update bill
-exports.updateBill = async (req, res) => {
-    try {
-        const { id, customerId, billDetails } = req.body;
-        const userId = req.user.id;
-        const result = await billService.updateBill(
-            id,
-            customerId,
-            billDetails,
-            userId,
-        );
-        res.status(200).json({
-            status: { code: 200, description: "Ok" },
-            data: result,
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: { code: 500, description: "Internal Server Error" },
-            error: error.message,
-        });
-    }
-};
+exports.updateBill = [
+    ...validateBillWithId(),
+    handleValidationErrors,
+    async (req, res) => {
+        try {
+            const { id, customerId, billDetails } = req.body;
+            const userId = req.user.id;
+            const result = await billService.updateBill(id, customerId, billDetails, userId);
+            res.status(200).json({
+                status: { code: 200, description: "Ok" },
+                data: result,
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: { code: 500, description: "Internal Server Error" },
+                error: error.message,
+            });
+        }
+    },
+];
 
 // Delete bill
 exports.deleteBill = async (req, res) => {

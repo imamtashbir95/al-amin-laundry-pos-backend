@@ -1,12 +1,7 @@
 const request = require("supertest");
 const app = require("../app");
 const prisma = require("../config/db");
-const {
-    loginTestUser,
-    registerTestUser,
-    createTestProduct,
-    createTestCustomer,
-} = require("./testUtils");
+const { loginTestUser, registerTestUser, createTestProduct, createTestCustomer } = require("./testUtils");
 
 let token;
 
@@ -68,9 +63,7 @@ describe("Bill controller", () => {
         expect(response.body.data.billDetails[0].product.id).toBe(productId);
         expect(response.body.data.billDetails[0].qty).toBe(3);
         expect(response.body.data.billDetails[0].price).toBeDefined();
-        expect(response.body.data.billDetails[0].paymentStatus).toBe(
-            "sudah-dibayar",
-        );
+        expect(response.body.data.billDetails[0].paymentStatus).toBe("sudah-dibayar");
         expect(response.body.data.billDetails[0].status).toBe("baru");
         expect(response.body.data.billDetails[0].finishDate).toBeDefined();
         expect(response.body.data.createdAt).toBeDefined();
@@ -79,9 +72,7 @@ describe("Bill controller", () => {
     });
 
     test("GET /bills should get all bills", async () => {
-        const response = await request(app)
-            .get("/bills")
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/bills").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -222,9 +213,7 @@ describe("Bill controller", () => {
     test("GET /bills/:id should get bill by ID", async () => {
         const { id } = await prisma.bill.findFirst();
 
-        const response = await request(app)
-            .get(`/bills/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/bills/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -272,9 +261,7 @@ describe("Bill controller", () => {
         expect(response.body.data.billDetails[0].product.id).toBe(productId);
         expect(response.body.data.billDetails[0].qty).toBe(3);
         expect(response.body.data.billDetails[0].price).toBeDefined();
-        expect(response.body.data.billDetails[0].paymentStatus).toBe(
-            "sudah-dibayar",
-        );
+        expect(response.body.data.billDetails[0].paymentStatus).toBe("sudah-dibayar");
         expect(response.body.data.billDetails[0].status).toBe("proses");
         expect(response.body.data.billDetails[0].finishDate).toBeDefined();
         expect(response.body.data.createdAt).toBeDefined();
@@ -285,9 +272,7 @@ describe("Bill controller", () => {
     test("DELETE /bills/:id should delete bill", async () => {
         const { id } = await prisma.bill.findFirst();
 
-        const response = await request(app)
-            .delete(`/bills/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/bills/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });

@@ -43,9 +43,7 @@ describe("Product controller", () => {
     });
 
     test("GET /products should get all products", async () => {
-        const response = await request(app)
-            .get("/products")
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/products").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -54,17 +52,13 @@ describe("Product controller", () => {
     test("GET /products/:id should get product by ID", async () => {
         const { id } = await prisma.product.findFirst();
 
-        const response = await request(app)
-            .get(`/products/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/products/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
     });
 
     test("GET /products/:id should get product by ID but not found", async () => {
-        const response = await request(app)
-            .get(`/products/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/products/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
@@ -95,17 +89,13 @@ describe("Product controller", () => {
     test("DELETE /products should delete product by ID", async () => {
         const { id } = await prisma.product.findFirst();
 
-        const response = await request(app)
-            .delete(`/products/${id}`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/products/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });
 
     test("DELETE /products/:id should delete product by ID but not found", async () => {
-        const response = await request(app)
-            .delete(`/products/9999`)
-            .set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/products/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
