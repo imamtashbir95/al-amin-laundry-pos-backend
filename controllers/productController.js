@@ -1,5 +1,5 @@
 const productService = require("../services/productService");
-const { validateProduct, handleValidationErrors, validateProductWithId } = require("../validators/productValidator");
+const { handleValidationErrors, validateProduct, validateProductWithId } = require("../validators/productValidator");
 
 // Create a new product
 exports.createProduct = [

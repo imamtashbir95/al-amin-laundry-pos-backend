@@ -1,18 +1,13 @@
+const billModel = require("../models/billModel");
+const customerModel = require("../models/customerModel");
 const generateId = require("../utils/generateId");
+const prisma = require("../config/db");
+const userModel = require("../models/userModel");
 const { getCurrentDateAndTime } = require("../utils/getCurrent");
 const { enrichBillDetails, enrichBill } = require("../helpers/billHelper");
-const customerModel = require("../models/customerModel");
-const userModel = require("../models/userModel");
-const billModel = require("../models/billModel");
-const prisma = require("../config/db");
-const { redisClient } = require("../config/redis");
-const CACHE_TTL = 3600; // 1 hour
 
 // Create a new bill
 const createBill = async (customerId, billDetails, userId) => {
-    // Delete the cache if data changed
-    await redisClient.del("all_bills");
-
     const id = generateId();
     const billDate = getCurrentDateAndTime();
     const createdAt = getCurrentDateAndTime();
@@ -65,145 +60,44 @@ const createBill = async (customerId, billDetails, userId) => {
 
 // Get all bills
 const getAllBills = async () => {
-    const cacheKey = "all_bills";
-
-    // Check if the data is already in the cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-        console.log("📦 [Cache Hit] GET all bills");
-        return JSON.parse(cachedData);
-    }
-    console.log("❌ [Cache Miss] GET all bills");
-
-    // If not in the cache, fetch the data from the database
     const bills = await billModel.findMany();
-    const result = await Promise.all(bills.map(enrichBill));
-
-    // Store the data in the cache
-    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(result));
-
-    return result;
+    return Promise.all(bills.map(enrichBill));
 };
 
 // Get report in
 const getReportInBills = async (date) => {
-    const cacheKey = `report_in_bills_${date}`;
-
-    // Check if the data is already in the cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-        console.log(`📦 [Cache Hit] GET report in bills ${date}`);
-        return JSON.parse(cachedData);
-    }
-    console.log(`❌ [Cache Miss] GET report in bills ${date}`);
-
-    // If not in the cache, fetch the data from the database
     const bills = await billModel.findReportIn(date);
-    const result = await Promise.all(bills.map(enrichBill));
-
-    // Store the data in the cache
-    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(result));
-
-    return result;
+    return Promise.all(bills.map(enrichBill));
 };
 
 // Get report out
 const getReportOutBills = async (date) => {
-    const cacheKey = `report_out_bills_${date}`;
-
-    // Check if the data is already in the cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-        console.log(`📦 [Cache Hit] GET report out bills ${date}`);
-        return JSON.parse(cachedData);
-    }
-    console.log(`❌ [Cache Miss] GET report out bill ${date}`);
-
-    // If not in the cache, fetch the data from the database
     const bills = await billModel.findReportOut(date);
-    const result = await Promise.all(bills.map(enrichBill));
-
-    // Store the data in the cache
-    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(result));
-
-    return result;
+    return Promise.all(bills.map(enrichBill));
 };
 
 // Get report not paid off
 const getReportNotPaidOffBills = async (date) => {
-    const cacheKey = `report_not_paid_off_bills_${date}`;
-
-    // Check if the data is already in the cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-        console.log(`📦 [Cache Hit] GET report not paid off bills ${date}`);
-        return JSON.parse(cachedData);
-    }
-    console.log(`❌ [Cache Miss] GET report not paid off bills ${date}`);
-
-    // If not in the cache, fetch the data from the database
     const bills = await billModel.findReportNotPaidOff(date);
-    const result = await Promise.all(bills.map(enrichBill));
-
-    // Store the data in the cache
-    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(result));
-
-    return result;
+    return Promise.all(bills.map(enrichBill));
 };
 
 // Get report not taken yet
 const getReportNotTakenYetBills = async (date) => {
-    const cacheKey = `report_not_taken_yet_bills_${date}`;
-
-    // Check if the data is already in the cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-        console.log(`📦 [Cache Hit] GET report not taken yet bills ${date}`);
-        return JSON.parse(cachedData);
-    }
-    console.log(`❌ [Cache Miss] GET report not taken yet bills ${date}`);
-
-    // If not in the cache, fetch the data from the database
     const bills = await billModel.findReportNotTakenYet(date);
-    const result = await Promise.all(bills.map(enrichBill));
-
-    // Store the data in the cache
-    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(result));
-
-    return result;
+    return Promise.all(bills.map(enrichBill));
 };
 
 // Get bill by ID
 const getBillById = async (id) => {
-    const cacheKey = `bill_${id}`;
-
-    // Check if the data is already in the cache
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-        console.log(`📦 [Cache Hit] GET bill ${id}`);
-        return JSON.parse(cachedData);
-    }
-    console.log(`❌ [Cache Miss] GET bill ${id}`);
-
-    // If not in the cache, fetch the data from the database
     const bill = await billModel.findById(id);
     if (!bill) throw new Error("Bill not found");
-    const result = enrichBill(bill);
-
-    // Store the data in the cache
-    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(result));
-
-    return result;
+    return enrichBill(bill);
 };
 
 // Update bill
 const updateBill = async (id, customerId, billDetails, userId) => {
     const updatedAt = getCurrentDateAndTime();
-
-    // Clear related cache
-    // Add cache invalidation for write operations
-    await redisClient.del("bills");
-    await redisClient.del(`bill${id}`);
 
     return await prisma.$transaction(async (_prisma) => {
         const [customer, user] = await Promise.all([customerModel.findById(customerId), userModel.findById(userId)]);
@@ -257,10 +151,6 @@ const updateBill = async (id, customerId, billDetails, userId) => {
 
 // Delete bill
 const deleteBill = async (id) => {
-    // Delete the cache if data changed
-    await redisClient.del("bills");
-    await redisClient.del(`bill_${id}`);
-
     return await prisma.$transaction(async (_prisma) => {
         const existingBill = await billModel.findById(id);
         if (!existingBill) {

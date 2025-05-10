@@ -1,12 +1,13 @@
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { body, validationResult } = require("express-validator");
 const generateId = require("../utils/generateId");
-const { getCurrentDateAndTime, getCurrentTimestampUnix } = require("../utils/getCurrent");
-const userModel = require("../models/userModel");
+const jwt = require("jsonwebtoken");
 const prisma = require("../config/db");
-const { validateUser } = require("../validators/userValidator");
+const userModel = require("../models/userModel");
+const { formatCurrentUser } = require("../helpers/userHelper");
 const { handleValidationErrors } = require("../validators/productValidator");
+const { validateUserForRegister } = require("../validators/userValidator");
+const { body, validationResult } = require("express-validator");
+const { getCurrentDateAndTime, getCurrentTimestampUnix } = require("../utils/getCurrent");
 
 exports.login = [
     body("username").notEmpty().withMessage("Username is required"),
@@ -30,7 +31,11 @@ exports.login = [
                     name: true,
                     email: true,
                     username: true,
+                    gender: true,
+                    language: true,
+                    phone_number: true,
                     password: true,
+                    password_updated_at: true,
                     role: true,
                     created_at: true,
                     updated_at: true,
@@ -72,13 +77,14 @@ exports.login = [
 ];
 
 exports.register = [
-    ...validateUser(),
+    ...validateUserForRegister(),
     handleValidationErrors,
     async (req, res) => {
-        const { name, email, username, password, role } = req.body;
+        const { name, email, username, gender, language, phoneNumber, password, role } = req.body;
         const id = generateId();
         const hashedPassword = await bcrypt.hash(password, 10);
         const createdAt = getCurrentDateAndTime();
+        const passwordUpdatedAt = getCurrentDateAndTime();
         const updatedAt = createdAt;
 
         try {
@@ -87,7 +93,7 @@ exports.register = [
             if (existingUser) {
                 return res.status(409).json({
                     status: { code: 409, description: "Conflict" },
-                    error: "Username or e-mail already exists",
+                    error: "Username or email already exists",
                 });
             }
 
@@ -97,7 +103,11 @@ exports.register = [
                     name,
                     email,
                     username,
+                    gender,
+                    language,
+                    phone_number: phoneNumber,
                     password: hashedPassword,
+                    password_updated_at: passwordUpdatedAt,
                     role,
                     created_at: createdAt,
                     updated_at: updatedAt,
@@ -107,23 +117,22 @@ exports.register = [
                     name: true,
                     email: true,
                     username: true,
+                    gender: true,
+                    language: true,
+                    phone_number: true,
+                    password: true,
+                    password_updated_at: true,
                     role: true,
                     created_at: true,
                     updated_at: true,
                 },
             });
 
+            const formattedNewUser = formatCurrentUser(newUser);
+
             res.status(201).json({
                 status: { code: 201, description: "Ok" },
-                data: {
-                    id: newUser.id,
-                    name: newUser.name,
-                    email: newUser.email,
-                    username: newUser.username,
-                    role: newUser.role,
-                    createdAt: newUser.created_at,
-                    updatedAt: newUser.updated_at,
-                },
+                data: formattedNewUser,
             });
         } catch (error) {
             res.status(500).json({

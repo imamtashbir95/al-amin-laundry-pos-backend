@@ -8,16 +8,20 @@ datasource db {
 }
 
 model User {
-	id           String     @id @default(uuid())
-	name         String
-	email        String     @unique
-	username     String     @unique
-	password     String
-	role         String
-	is_deleted   Boolean    @default(false)
-	created_at   DateTime   @default(now())
-	updated_at   DateTime   @updatedAt
-	bills        Bill[]
+	id           		String     @id @default(uuid())
+	name         		String
+	email        		String     @unique
+	username     		String     @unique
+	gender       		String?    // Nullable
+	language	 		String?    // Nullable
+	phone_number 		String?    // Nullable
+	password     		String
+	password_updated_at DateTime   @default(now())
+	role         		String	   @default("employee")
+	is_deleted   		Boolean    @default(false)
+	created_at   		DateTime   @default(now())
+	updated_at   		DateTime   @updatedAt
+	bills        		Bill[]
 }
 
 model Customer {

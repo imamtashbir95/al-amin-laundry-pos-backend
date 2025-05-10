@@ -69,8 +69,8 @@ const billModel = {
                             gte: startDate,
                             lte: endDate,
                         },
-                        payment_status: "sudah-dibayar",
-                        status: { in: ["selesai", "diambil"] },
+                        payment_status: "paid",
+                        status: { in: ["done", "taken"] },
                     },
                 },
             },
@@ -89,7 +89,7 @@ const billModel = {
                 bill_details: {
                     some: {
                         finish_date: { lte: new Date(date) },
-                        payment_status: "belum-dibayar",
+                        payment_status: "not-paid",
                     },
                 },
             },
@@ -105,8 +105,8 @@ const billModel = {
                 bill_details: {
                     some: {
                         finish_date: { lte: new Date(date) },
-                        payment_status: "sudah-dibayar",
-                        status: "selesai",
+                        payment_status: "paid",
+                        status: "done",
                     },
                 },
             },

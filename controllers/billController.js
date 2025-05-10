@@ -1,5 +1,5 @@
 const billService = require("../services/billService");
-const { validateBill, handleValidationErrors, validateBillWithId } = require("../validators/billValidator");
+const { handleValidationErrors, validateBill, validateBillWithId } = require("../validators/billValidator");
 
 // Create a new bill
 exports.createBill = [

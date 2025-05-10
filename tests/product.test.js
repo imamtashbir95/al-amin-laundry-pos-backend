@@ -1,11 +1,13 @@
-const request = require("supertest");
 const app = require("../app");
 const prisma = require("../config/db");
+const request = require("supertest");
+const { redisClient } = require("../config/redis");
 const { loginTestUser, registerTestUser } = require("./testUtils");
 
 let token;
 
 beforeAll(async () => {
+    await redisClient.connect();
     await prisma.billDetail.deleteMany();
     await prisma.bill.deleteMany();
     await prisma.user.deleteMany();
@@ -19,13 +21,14 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+    await redisClient.quit();
     await prisma.$disconnect();
 });
 
 describe("Product controller", () => {
     test("POST /products should create a new product", async () => {
         const response = await request(app)
-            .post("/products")
+            .post("/api/v1/products")
             .send({
                 name: "Cuci 2 Hari",
                 price: 6000,
@@ -43,7 +46,7 @@ describe("Product controller", () => {
     });
 
     test("GET /products should get all products", async () => {
-        const response = await request(app).get("/products").set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/api/v1/products").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -52,13 +55,13 @@ describe("Product controller", () => {
     test("GET /products/:id should get product by ID", async () => {
         const { id } = await prisma.product.findFirst();
 
-        const response = await request(app).get(`/products/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/api/v1/products/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
     });
 
     test("GET /products/:id should get product by ID but not found", async () => {
-        const response = await request(app).get(`/products/9999`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/api/v1/products/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
@@ -68,7 +71,7 @@ describe("Product controller", () => {
         const { id } = await prisma.product.findFirst();
 
         const response = await request(app)
-            .put("/products")
+            .put("/api/v1/products")
             .send({
                 id,
                 name: "Cuci Express",
@@ -89,13 +92,13 @@ describe("Product controller", () => {
     test("DELETE /products should delete product by ID", async () => {
         const { id } = await prisma.product.findFirst();
 
-        const response = await request(app).delete(`/products/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/api/v1/products/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });
 
     test("DELETE /products/:id should delete product by ID but not found", async () => {
-        const response = await request(app).delete(`/products/9999`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/api/v1/products/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();

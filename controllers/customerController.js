@@ -1,5 +1,5 @@
 const customerService = require("../services/customerService");
-const { validateCustomer, handleValidationErrors, validateCustomerWithId } = require("../validators/customerValidator");
+const { handleValidationErrors, validateCustomer, validateCustomerWithId } = require("../validators/customerValidator");
 
 // Create a new customer
 exports.createCustomer = [

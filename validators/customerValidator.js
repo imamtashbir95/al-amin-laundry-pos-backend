@@ -1,4 +1,5 @@
-const { body, validationResult } = require("express-validator");
+const handleValidationErrors = require("../middleware/validationMiddleware");
+const { body } = require("express-validator");
 
 // Function for customer validation (without ID, used for create)
 const validateCustomer = () => [
@@ -26,18 +27,6 @@ const validateCustomer = () => [
 
 // Additional function for ID validation (used for updates)
 const validateCustomerWithId = () => [body("id").notEmpty().withMessage("Customer ID is required"), ...validateCustomer()];
-
-// Middleware to handle validation erros
-const handleValidationErrors = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            status: { code: 400, description: "Bad Request" },
-            errors: errors.array()
-        });
-    }
-    next();
-};
 
 module.exports = {
     validateCustomer,
