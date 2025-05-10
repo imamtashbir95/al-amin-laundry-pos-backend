@@ -1,11 +1,13 @@
-const request = require("supertest");
 const app = require("../app");
 const prisma = require("../config/db");
+const request = require("supertest");
+const { redisClient } = require("../config/redis");
 const { loginTestUser, registerTestUser } = require("./testUtils");
 
 let token;
 
 beforeAll(async () => {
+    await redisClient.connect();
     await prisma.billDetail.deleteMany();
     await prisma.bill.deleteMany();
     await prisma.user.deleteMany();
@@ -19,13 +21,14 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+    await redisClient.quit();
     await prisma.$disconnect();
 });
 
 describe("Customer controller", () => {
     test("POST /customers should create a new customer", async () => {
         const response = await request(app)
-            .post("/customers")
+            .post("/api/v1/customers")
             .send({
                 name: "Andi Wijaya",
                 phoneNumber: "081265270252",
@@ -43,7 +46,7 @@ describe("Customer controller", () => {
     });
 
     test("GET /customers should get all customers", async () => {
-        const response = await request(app).get("/customers").set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/api/v1/customers").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -52,13 +55,13 @@ describe("Customer controller", () => {
     test("GET /customers/:id should get customer by ID", async () => {
         const { id } = await prisma.customer.findFirst();
 
-        const response = await request(app).get(`/customers/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/api/v1/customers/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
     });
 
     test("GET /customers/:id should get customer by ID but not found", async () => {
-        const response = await request(app).get(`/customers/9999`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/api/v1/customers/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
@@ -68,7 +71,7 @@ describe("Customer controller", () => {
         const { id } = await prisma.customer.findFirst();
 
         const response = await request(app)
-            .put("/customers")
+            .put("/api/v1/customers")
             .send({
                 id,
                 name: "Andi Wijaya 2",
@@ -89,13 +92,13 @@ describe("Customer controller", () => {
     test("DELETE /customers should delete customer by ID", async () => {
         const { id } = await prisma.customer.findFirst();
 
-        const response = await request(app).delete(`/customers/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/api/v1/customers/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });
 
     test("DELETE /customers/:id should delete customer by ID but not found", async () => {
-        const response = await request(app).delete(`/customers/9999`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/api/v1/customers/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();

@@ -1,6 +1,6 @@
+const billController = require("../controllers/billController");
 const express = require("express");
 const router = express.Router();
-const billController = require("../controllers/billController");
 const { authenticate } = require("../middleware/authMiddleware");
 
 router.post("/", authenticate, billController.createBill);

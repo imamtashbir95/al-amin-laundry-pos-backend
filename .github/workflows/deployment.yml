@@ -21,6 +21,12 @@ jobs:
                     - 5432:5432
                 options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
+            redis:
+                image: redis:7
+                ports:
+                    - 6379:6379
+                options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
         strategy:
             matrix:
                 node-version: [22.12.x]
@@ -28,7 +34,7 @@ jobs:
         steps:
             - uses: actions/checkout@v2
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v2
+              uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
@@ -42,6 +48,10 @@ jobs:
             - name: 🌱 Setup environment variables
               run: |
                   echo "DATABASE_URL=postgresql://postgres:lordvoldemort@localhost:5432/al_amin_laundry_pos" >> $GITHUB_ENV
+                  echo "REDIS_USERNAME=" >> $GITHUB_ENV
+                  echo "REDIS_PASSWORD=" >> $GITHUB_ENV
+                  echo "REDIS_HOST=localhost" >> $GITHUB_ENV
+                  echo "REDIS_PORT=6379" >> $GITHUB_ENV
                   echo "JWT_ISSUER=imamarrahman" >> $GITHUB_ENV
                   echo "JWT_SECRET=wgzoawqghohs" >> $GITHUB_ENV
                   echo "JWT_LIFE_TIME=24" >> $GITHUB_ENV
@@ -56,6 +66,8 @@ jobs:
               run: npm run test:ci
 
             - name: 🔄️ Run migrations for preview and production
-              run: npx prisma migrate deploy
+              run: |
+                npx prisma migrate resolve --applied 0_init
+                npx prisma migrate deploy
               env:
                   DATABASE_URL: ${{ secrets.DATABASE_URL }}

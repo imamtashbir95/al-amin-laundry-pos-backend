@@ -1,7 +1,7 @@
 {
     "name": "al-amin-laundry-pos-backend",
     "private": true,
-    "version": "1.0.16",
+    "version": "2.0.0",
     "main": "app.js",
     "scripts": {
         "dev": "nodemon server.js",

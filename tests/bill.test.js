@@ -1,11 +1,13 @@
-const request = require("supertest");
 const app = require("../app");
 const prisma = require("../config/db");
-const { loginTestUser, registerTestUser, createTestProduct, createTestCustomer } = require("./testUtils");
+const request = require("supertest");
+const { redisClient } = require("../config/redis");
+const { createTestCustomer, createTestProduct, loginTestUser, registerTestUser } = require("./testUtils");
 
 let token;
 
 beforeAll(async () => {
+    await redisClient.connect();
     await prisma.billDetail.deleteMany();
     await prisma.bill.deleteMany();
     await prisma.product.deleteMany();
@@ -19,6 +21,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+    await redisClient.quit();
     await prisma.$disconnect();
 });
 
@@ -32,7 +35,7 @@ describe("Bill controller", () => {
         const { id: productId } = await prisma.product.findFirst();
 
         const response = await request(app)
-            .post("/bills")
+            .post("/api/v1/bills")
             .send({
                 customerId,
                 billDetails: [
@@ -42,8 +45,8 @@ describe("Bill controller", () => {
                             id: productId,
                         },
                         qty: 3,
-                        paymentStatus: "sudah-dibayar",
-                        status: "baru",
+                        paymentStatus: "paid",
+                        status: "new",
                         finishDate: newDate,
                     },
                 ],
@@ -63,8 +66,8 @@ describe("Bill controller", () => {
         expect(response.body.data.billDetails[0].product.id).toBe(productId);
         expect(response.body.data.billDetails[0].qty).toBe(3);
         expect(response.body.data.billDetails[0].price).toBeDefined();
-        expect(response.body.data.billDetails[0].paymentStatus).toBe("sudah-dibayar");
-        expect(response.body.data.billDetails[0].status).toBe("baru");
+        expect(response.body.data.billDetails[0].paymentStatus).toBe("paid");
+        expect(response.body.data.billDetails[0].status).toBe("new");
         expect(response.body.data.billDetails[0].finishDate).toBeDefined();
         expect(response.body.data.createdAt).toBeDefined();
         expect(response.body.data.updatedAt).toBeDefined();
@@ -72,7 +75,7 @@ describe("Bill controller", () => {
     });
 
     test("GET /bills should get all bills", async () => {
-        const response = await request(app).get("/bills").set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/api/v1/bills").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -83,7 +86,7 @@ describe("Bill controller", () => {
         const { created_at: date } = await prisma.bill.findFirst();
 
         const response = await request(app)
-            .get(`/bills/report/in?date=${date}`)
+            .get(`/api/v1/bills/report/in?date=${date}`)
             .set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
@@ -101,7 +104,7 @@ describe("Bill controller", () => {
         const { finish_date: date } = await prisma.billDetail.findFirst();
 
         await request(app)
-            .put("/bills")
+            .put("/api/v1/bills")
             .send({
                 id: billId,
                 customerId,
@@ -113,8 +116,8 @@ describe("Bill controller", () => {
                             id: productId,
                         },
                         qty: 3,
-                        paymentStatus: "sudah-dibayar",
-                        status: "selesai",
+                        paymentStatus: "paid",
+                        status: "done",
                         finishDate: date,
                     },
                 ],
@@ -122,7 +125,7 @@ describe("Bill controller", () => {
             .set("Authorization", `Bearer ${token}`);
 
         const response = await request(app)
-            .get(`/bills/report/out?date=${date}`)
+            .get(`/api/v1/bills/report/out?date=${date}`)
             .set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
@@ -140,7 +143,7 @@ describe("Bill controller", () => {
         const { finish_date: date } = await prisma.billDetail.findFirst();
 
         await request(app)
-            .put("/bills")
+            .put("/api/v1/bills")
             .send({
                 id: billId,
                 customerId,
@@ -152,8 +155,8 @@ describe("Bill controller", () => {
                             id: productId,
                         },
                         qty: 3,
-                        paymentStatus: "belum-dibayar",
-                        status: "selesai",
+                        paymentStatus: "not-paid",
+                        status: "done",
                         finishDate: date,
                     },
                 ],
@@ -161,7 +164,7 @@ describe("Bill controller", () => {
             .set("Authorization", `Bearer ${token}`);
 
         const response = await request(app)
-            .get(`/bills/report/not-paid-off?date=${date}`)
+            .get(`/api/v1/bills/report/not-paid-off?date=${date}`)
             .set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
@@ -179,7 +182,7 @@ describe("Bill controller", () => {
         const { finish_date: date } = await prisma.billDetail.findFirst();
 
         await request(app)
-            .put("/bills")
+            .put("/api/v1/bills")
             .send({
                 id: billId,
                 customerId,
@@ -191,8 +194,8 @@ describe("Bill controller", () => {
                             id: productId,
                         },
                         qty: 3,
-                        paymentStatus: "sudah-dibayar",
-                        status: "selesai",
+                        paymentStatus: "paid",
+                        status: "done",
                         finishDate: date,
                     },
                 ],
@@ -200,7 +203,7 @@ describe("Bill controller", () => {
             .set("Authorization", `Bearer ${token}`);
 
         const response = await request(app)
-            .get(`/bills/report/not-taken-yet?date=${date}`)
+            .get(`/api/v1/bills/report/not-taken-yet?date=${date}`)
             .set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
@@ -213,7 +216,7 @@ describe("Bill controller", () => {
     test("GET /bills/:id should get bill by ID", async () => {
         const { id } = await prisma.bill.findFirst();
 
-        const response = await request(app).get(`/bills/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/api/v1/bills/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -228,7 +231,7 @@ describe("Bill controller", () => {
         const { finish_date: date } = await prisma.billDetail.findFirst();
 
         const response = await request(app)
-            .put("/bills")
+            .put("/api/v1/bills")
             .send({
                 id: billId,
                 customerId,
@@ -240,8 +243,8 @@ describe("Bill controller", () => {
                             id: productId,
                         },
                         qty: 3,
-                        paymentStatus: "sudah-dibayar",
-                        status: "proses",
+                        paymentStatus: "paid",
+                        status: "process",
                         finishDate: date,
                     },
                 ],
@@ -261,8 +264,8 @@ describe("Bill controller", () => {
         expect(response.body.data.billDetails[0].product.id).toBe(productId);
         expect(response.body.data.billDetails[0].qty).toBe(3);
         expect(response.body.data.billDetails[0].price).toBeDefined();
-        expect(response.body.data.billDetails[0].paymentStatus).toBe("sudah-dibayar");
-        expect(response.body.data.billDetails[0].status).toBe("proses");
+        expect(response.body.data.billDetails[0].paymentStatus).toBe("paid");
+        expect(response.body.data.billDetails[0].status).toBe("process");
         expect(response.body.data.billDetails[0].finishDate).toBeDefined();
         expect(response.body.data.createdAt).toBeDefined();
         expect(response.body.data.updatedAt).toBeDefined();
@@ -272,7 +275,7 @@ describe("Bill controller", () => {
     test("DELETE /bills/:id should delete bill", async () => {
         const { id } = await prisma.bill.findFirst();
 
-        const response = await request(app).delete(`/bills/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/api/v1/bills/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });

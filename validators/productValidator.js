@@ -1,4 +1,5 @@
-const { body, validationResult } = require("express-validator");
+const handleValidationErrors = require("../middleware/validationMiddleware");
+const { body } = require("express-validator");
 
 // Function for product validation (without ID, used for create)
 const validateProduct = () => [
@@ -18,8 +19,8 @@ const validateProduct = () => [
         .isFloat({ min: 1000 })
         .withMessage("Product price cannot be less than 1,000")
         .bail()
-        .isFloat({ max: 9007199254740992n })
-        .withMessage("Product price cannot be more than 9,007,199,254,740,992"),
+        .isFloat({ max: 2147483647 })
+        .withMessage("Product price cannot be more than 2,147,483,647"),
     body("type")
         .notEmpty()
         .withMessage("Product type is required")
@@ -30,18 +31,6 @@ const validateProduct = () => [
 
 // Additional function for ID validation (used for updates)
 const validateProductWithId = () => [body("id").notEmpty().withMessage("Product ID is required"), ...validateProduct()];
-
-// Middleware to handle validation errors
-const handleValidationErrors = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            status: { code: 400, description: "Bad Request" },
-            errors: errors.array(),
-        });
-    }
-    next();
-};
 
 module.exports = {
     validateProduct,

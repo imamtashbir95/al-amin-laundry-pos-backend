@@ -1,11 +1,13 @@
-const request = require("supertest");
 const app = require("../app");
 const prisma = require("../config/db");
+const request = require("supertest");
+const { redisClient } = require("../config/redis");
 const { loginTestUser, registerTestUser } = require("./testUtils");
 
 let token;
 
 beforeAll(async () => {
+    await redisClient.connect();
     await prisma.billDetail.deleteMany();
     await prisma.bill.deleteMany();
     await prisma.user.deleteMany();
@@ -15,22 +17,24 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     token = await loginTestUser();
-    // console.log("Token:", token); // Debugging untuk melihat apakah token valid
+    // console.log("Token:", token); // Debugging to see if the token is valid
 });
 
 afterAll(async () => {
+    await redisClient.quit();
     await prisma.$disconnect();
 });
 
 describe("User controller", () => {
     test("POST /users should create a new user", async () => {
         const response = await request(app)
-            .post("/users")
+            .post("/api/v1/users")
             .send({
                 name: "Nisrina Sara",
                 email: "saranisrina123@gmail.com",
                 username: "nisrinasara",
                 password: "dJvJ30%7gH6#%Oz",
+                confirmPassword: "dJvJ30%7gH6#%Oz",
                 role: "employee",
             })
             .set("Authorization", `Bearer ${token}`);
@@ -54,12 +58,13 @@ describe("User controller", () => {
 
     test("POST /users should return 409 for existing username or email", async () => {
         const response = await request(app)
-            .post("/users")
+            .post("/api/v1/users")
             .send({
                 name: "Nisrina Sara",
                 email: "saranisrina123@gmail.com",
                 username: "nisrinasara",
                 password: "dJvJ30%7gH6#%Oz",
+                confirmPassword: "dJvJ30%7gH6#%Oz",
                 role: "employee",
             })
             .set("Authorization", `Bearer ${token}`);
@@ -69,7 +74,7 @@ describe("User controller", () => {
     });
 
     test("GET /users should get all users", async () => {
-        const response = await request(app).get("/users").set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get("/api/v1/users").set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
         expect(response.body.data).toBeDefined();
@@ -78,13 +83,13 @@ describe("User controller", () => {
     test("GET /users/:id should get user by ID", async () => {
         const { id } = await prisma.user.findFirst();
 
-        const response = await request(app).get(`/users/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/api/v1/users/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(200);
     });
 
     test("GET /users/:id should get user by ID but not found", async () => {
-        const response = await request(app).get(`/users/9999`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).get(`/api/v1/users/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();
@@ -101,13 +106,14 @@ describe("User controller", () => {
         });
 
         const response = await request(app)
-            .put("/users")
+            .put("/api/v1/users")
             .send({
                 id,
                 name: "Nisrina Sara",
                 email: "saranisrina123@gmail.com",
                 username: "nisrinasara2",
                 password: "dJvJ30%7gH6#%Oz",
+                confirmPassword: "dJvJ30%7gH6#%Oz",
                 role: "employee",
             })
             .set("Authorization", `Bearer ${token}`);
@@ -133,13 +139,13 @@ describe("User controller", () => {
             },
         });
 
-        const response = await request(app).delete(`/users/${id}`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/api/v1/users/${id}`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(204);
     });
 
     test("DELETE /users/:id should delete user by ID but not found", async () => {
-        const response = await request(app).delete(`/users/9999`).set("Authorization", `Bearer ${token}`);
+        const response = await request(app).delete(`/api/v1/users/9999`).set("Authorization", `Bearer ${token}`);
 
         expect(response.statusCode).toBe(404);
         expect(response.body.error).toBeDefined();

@@ -1,4 +1,5 @@
-const { body, validationResult } = require("express-validator");
+const handleValidationErrors = require("../middleware/validationMiddleware");
+const { body } = require("express-validator");
 
 // Function for bill validation (without ID, used for create)
 const validateBill = () => [
@@ -38,21 +39,21 @@ const validateBill = () => [
         .isFloat({ gt: 0 })
         .withMessage("Quantity must be a positive number")
         .bail()
-        .isFloat({ max: 9007199254740992n })
-        .withMessage("Quantity cannot be more than 9,007,199,254,740,992"),
+        .isFloat({ max: 2147483647 })
+        .withMessage("Quantity cannot be more than 2,147,483,647"),
     body("billDetails.*.paymentStatus")
         .notEmpty()
         .withMessage("Payment status is required")
         .bail()
-        .isIn(["sudah-dibayar", "belum-dibayar"])
-        .withMessage("Payment status must be 'sudah-dibayar' or 'belum-dibayar'"),
+        .isIn(["not-paid", "paid"])
+        .withMessage("Payment status must be 'not-paid' or 'paid'"),
 
     body("billDetails.*.status")
         .notEmpty()
         .withMessage("Status is required")
         .bail()
-        .isIn(["baru", "proses", "selesai"])
-        .withMessage("Status must be 'baru', 'proses', or 'selesai'"),
+        .isIn(["new", "process", "done", "taken"])
+        .withMessage("Status must be 'new', 'process', 'done', or 'taken'"),
 
     body("billDetails.*.finishDate")
         .notEmpty()
@@ -64,18 +65,6 @@ const validateBill = () => [
 
 // Additional function for ID validation (used for updates)
 const validateBillWithId = () => [body("id").notEmpty().withMessage("Bill ID is required"), ...validateBill()];
-
-// Middleware to handle validation errors
-const handleValidationErrors = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            status: { code: 400, description: "Bad Request" },
-            errors: errors.array(),
-        });
-    }
-    next();
-};
 
 module.exports = {
     validateBill,

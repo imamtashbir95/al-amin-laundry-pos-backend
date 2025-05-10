@@ -1,5 +1,5 @@
 const userService = require("../services/userService");
-const { validateUser, handleValidationErrors, validateUserWithId } = require("../validators/userValidator");
+const { handleValidationErrors, validateUser, validateUserWithId } = require("../validators/userValidator");
 
 // Register a new user
 exports.registerUser = [
@@ -74,10 +74,21 @@ exports.updateUser = [
                 data: result,
             });
         } catch (error) {
-            res.status(error.message.includes("User") ? 404 : 500).json({
+            let statusCode = 500;
+            let description = "Internal Server Error";
+
+            if (error.message.includes("not found")) {
+                statusCode = 404;
+                description = "Not Found";
+            } else if (error.message.includes("already exists")) {
+                statusCode = 409;
+                description = "Conflict";
+            }
+
+            res.status(statusCode).json({
                 status: {
-                    code: error.message.includes("User") ? 404 : 500,
-                    description: error.message.includes("Usern") ? "Not Found" : "Error",
+                    code: statusCode,
+                    description,
                 },
                 error: error.message,
             });

@@ -2,7 +2,7 @@ const prisma = require("../config/db");
 
 const userModel = {
     register: async (data) => {
-        const { id, name, email, username, hashedPassword, role, createdAt, updatedAt } = data;
+        const { id, name, email, username, hashedPassword, passwordUpdatedAt, role, createdAt, updatedAt } = data;
         return await prisma.user.create({
             data: {
                 id,
@@ -10,6 +10,7 @@ const userModel = {
                 email,
                 username,
                 password: hashedPassword,
+                password_updated_at: passwordUpdatedAt,
                 role,
                 created_at: createdAt,
                 updated_at: updatedAt,
@@ -54,7 +55,7 @@ const userModel = {
     },
 
     update: async (data) => {
-        const { id, name, email, username, hashedPassword, role, updatedAt } = data;
+        const { id, name, email, username, hashedPassword, passwordUpdatedAt, role, updatedAt } = data;
         return await prisma.user.update({
             where: { id, is_deleted: false },
             data: {
@@ -62,7 +63,36 @@ const userModel = {
                 email,
                 username,
                 password: hashedPassword,
+                password_updated_at: passwordUpdatedAt,
                 role,
+                updated_at: updatedAt,
+            },
+        });
+    },
+
+    updateCurrent: async (data) => {
+        const { id, name, email, username, gender, language, phoneNumber, updatedAt } = data;
+        return await prisma.user.update({
+            where: { id, is_deleted: false },
+            data: {
+                name,
+                email,
+                username,
+                gender,
+                language,
+                phone_number: phoneNumber,
+                updated_at: updatedAt
+            }
+        });
+    },
+
+    updatePassword: async (data) => {
+        const { id, hashedPassword, passwordUpdatedAt, updatedAt } = data;
+        return await prisma.user.update({
+            where: { id, is_deleted: false },
+            data: {
+                password: hashedPassword,
+                password_updated_at: passwordUpdatedAt,
                 updated_at: updatedAt,
             },
         });

@@ -1,17 +1,20 @@
 const bcrypt = require("bcrypt");
 const generateId = require("../utils/generateId");
 const userModel = require("../models/userModel");
-const { getCurrentDateAndTime } = require("../utils/getCurrent");
 const { formatUser } = require("../helpers/userHelper");
+const { getCurrentDateAndTime } = require("../utils/getCurrent");
 const { redisClient } = require("../config/redis");
-const CACHE_TTL = 3600; // 1 hour
+
+const CACHE_TTL = 60 * 60; // 1 hour
 
 const registerUser = async (name, email, username, password, role) => {
     // Delete the cache if data chaned
     await redisClient.del("all_users");
+    await redisClient.del("all_users_except_admin");
 
     const id = generateId();
     const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordUpdatedAt = getCurrentDateAndTime();
     const createdAt = getCurrentDateAndTime();
     const updatedAt = createdAt;
 
@@ -25,6 +28,7 @@ const registerUser = async (name, email, username, password, role) => {
         email,
         username,
         hashedPassword,
+        passwordUpdatedAt,
         role,
         createdAt,
         updatedAt,
@@ -78,15 +82,23 @@ const getUserById = async (id) => {
 
 const updateUser = async (id, name, email, username, password, role) => {
     const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordUpdatedAt = getCurrentDateAndTime();
     const updatedAt = getCurrentDateAndTime();
 
     // Clear related cache
     // Add cache invalidation for write operations
     await redisClient.del("all_users");
+    await redisClient.del("all_users_except_admin");
     await redisClient.del(`user_${id}`);
 
     const existingUser = await userModel.findById(id);
     if (!existingUser) throw new Error("User not found");
+
+    // Check if the found user is NOT the user being updated
+    const existingUserByEmail = await userModel.findByUsernameOrEmail(username, email);
+    if (existingUserByEmail && existingUserByEmail.id !== id) {
+        throw new Error("Username or email already exists");
+    }
 
     await userModel.update({
         id,
@@ -94,6 +106,7 @@ const updateUser = async (id, name, email, username, password, role) => {
         email,
         username,
         hashedPassword,
+        passwordUpdatedAt,
         role,
         updatedAt,
     });

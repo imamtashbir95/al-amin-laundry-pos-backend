@@ -1,8 +1,8 @@
-const customerModel = require("../models/customerModel");
-const userModel = require("../models/userModel");
-const productModel = require("../models/productModel");
 const billDetailsModel = require("../models/billDetailsModel");
+const customerModel = require("../models/customerModel");
 const generateId = require("../utils/generateId");
+const productModel = require("../models/productModel");
+const userModel = require("../models/userModel");
 const { formatDate } = require("./formatDate");
 
 const enrichBillDetails = async (details, billId, updatedAt, operation) => {

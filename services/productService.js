@@ -1,9 +1,10 @@
 const generateId = require("../utils/generateId");
 const productModel = require("../models/productModel");
-const { getCurrentDateAndTime } = require("../utils/getCurrent");
 const { formatProduct } = require("../helpers/productHelper");
+const { getCurrentDateAndTime } = require("../utils/getCurrent");
 const { redisClient } = require("../config/redis");
-const CACHE_TTL = 3600; // 1 hour
+
+const CACHE_TTL = 60 * 60; // 1 hour
 
 const createProduct = async (name, price, type) => {
     // Delete the cache if data changed
